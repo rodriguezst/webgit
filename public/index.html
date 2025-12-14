@@ -1,0 +1,2235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>WebGit - Git Viewer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --bg-dark: #0f0f1a;
+      --bg-card: #1a1a2e;
+      --bg-card-hover: #252542;
+      --text-primary: #f9fafb;
+      --text-secondary: #9ca3af;
+      --border: #2d2d4a;
+      --diff-add: #22543d;
+      --diff-add-line: #276749;
+      --diff-del: #742a2a;
+      --diff-del-line: #9b2c2c;
+      --radius: 8px;
+      --touch-target: 44px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Mobile-first base styles */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* Header */
+    .header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .logo svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .branch-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-dark);
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      min-height: var(--touch-target);
+    }
+
+    .branch-selector:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .branch-name {
+      font-weight: 500;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sync-info {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .ahead, .behind {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .ahead { background: var(--success); color: white; }
+    .behind { background: var(--warning); color: white; }
+
+    /* Menu Toggle */
+    .menu-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--touch-target);
+      height: var(--touch-target);
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      border-radius: var(--radius);
+    }
+
+    .menu-toggle:hover {
+      background: var(--bg-card-hover);
+    }
+
+    /* Navigation */
+    .nav {
+      display: none;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav.open {
+      display: block;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      list-style: none;
+    }
+
+    .nav-item {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      min-height: var(--touch-target);
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--text-primary);
+      background: var(--bg-card-hover);
+    }
+
+    .nav-link.active {
+      border-left: 3px solid var(--primary);
+    }
+
+    .nav-link svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Main Content */
+    .main {
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card-hover);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-content {
+      padding: 16px;
+    }
+
+    /* File List */
+    .file-list {
+      list-style: none;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      min-height: var(--touch-target);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .file-item:last-child {
+      border-bottom: none;
+    }
+
+    .file-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .file-checkbox {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    .file-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .file-status.modified { background: var(--warning); color: white; }
+    .file-status.added { background: var(--success); color: white; }
+    .file-status.deleted { background: var(--danger); color: white; }
+    .file-status.untracked { background: var(--gray-500); color: white; }
+    .file-status.renamed { background: var(--primary); color: white; }
+
+    .file-name {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      min-height: var(--touch-target);
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--gray-700);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+      min-height: 32px;
+    }
+
+    .btn-icon {
+      padding: 8px;
+      min-width: var(--touch-target);
+    }
+
+    /* Commit Form */
+    .commit-form {
+      padding: 16px;
+    }
+
+    .commit-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .commit-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .commit-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 8px;
+    }
+
+    /* Diff View */
+    .diff-container {
+      background: var(--bg-dark);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .diff-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-card-hover);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .diff-file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+
+    .diff-content {
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .diff-line {
+      display: flex;
+      min-width: max-content;
+    }
+
+    .diff-line-num {
+      padding: 0 12px;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      user-select: none;
+      text-align: right;
+      min-width: 50px;
+      display: none;
+    }
+
+    .diff-line-content {
+      flex: 1;
+      padding: 0 16px;
+      white-space: pre;
+    }
+
+    .diff-line.add {
+      background: var(--diff-add);
+    }
+
+    .diff-line.add .diff-line-content {
+      background: var(--diff-add-line);
+    }
+
+    .diff-line.del {
+      background: var(--diff-del);
+    }
+
+    .diff-line.del .diff-line-content {
+      background: var(--diff-del-line);
+    }
+
+    .diff-line.hunk {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary);
+    }
+
+    /* Commit History */
+    .commit-list {
+      list-style: none;
+    }
+
+    .commit-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .commit-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .commit-item:last-child {
+      border-bottom: none;
+    }
+
+    .commit-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .commit-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .commit-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .commit-author {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .commit-date {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .commit-hash {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--primary);
+      background: var(--bg-dark);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .commit-message {
+      font-size: 14px;
+      line-height: 1.5;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Branch Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius) var(--radius) 0 0;
+      width: 100%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      width: var(--touch-target);
+      height: var(--touch-target);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius);
+    }
+
+    .modal-close:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-primary);
+    }
+
+    .modal-content {
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 60vh;
+    }
+
+    .branch-list {
+      list-style: none;
+    }
+
+    .branch-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      min-height: var(--touch-target);
+    }
+
+    .branch-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .branch-item.current {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid var(--primary);
+    }
+
+    .branch-item-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+
+    .branch-item-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Input */
+    .input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg-dark);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-primary);
+      font-size: 14px;
+      min-height: var(--touch-target);
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    /* Remote Panel */
+    .remote-info {
+      display: grid;
+      gap: 12px;
+    }
+
+    .remote-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 12px;
+      background: var(--bg-dark);
+      border-radius: var(--radius);
+    }
+
+    .remote-name {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .remote-url {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+
+    .remote-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+
+    /* Bottom Nav (Mobile) */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      z-index: 100;
+    }
+
+    .bottom-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 10px;
+      min-width: var(--touch-target);
+      min-height: var(--touch-target);
+      justify-content: center;
+      border-radius: var(--radius);
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .bottom-nav-item:hover, .bottom-nav-item.active {
+      color: var(--primary);
+    }
+
+    .bottom-nav-item svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .nav-icon-wrapper {
+      position: relative;
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: calc(100% - 32px);
+      max-width: 400px;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .toast.error {
+      border-color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Views */
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    /* Select All Row */
+    .select-all-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--bg-card-hover);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .file-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Section Headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--bg-card-hover);
+      cursor: pointer;
+    }
+
+    .section-header:hover {
+      background: var(--gray-700);
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+    }
+
+    .section-content {
+      display: block;
+    }
+
+    .section-content.collapsed {
+      display: none;
+    }
+
+    /* Desktop Styles */
+    @media (min-width: 768px) {
+      .menu-toggle {
+        display: none;
+      }
+
+      .nav {
+        display: block;
+        position: fixed;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        width: 220px;
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+      }
+
+      .nav-list {
+        padding: 16px 0;
+      }
+
+      .nav-item {
+        border-bottom: none;
+      }
+
+      .nav-link {
+        padding: 12px 20px;
+        border-radius: 0;
+      }
+
+      .nav-link.active {
+        border-left: 3px solid var(--primary);
+        background: rgba(99, 102, 241, 0.1);
+      }
+
+      .main {
+        margin-left: 220px;
+        padding: 24px;
+        padding-bottom: 24px;
+      }
+
+      .bottom-nav {
+        display: none;
+      }
+
+      .diff-line-num {
+        display: block;
+      }
+
+      .modal {
+        border-radius: var(--radius);
+        max-height: 70vh;
+      }
+
+      .modal-overlay {
+        align-items: center;
+      }
+
+      .modal-overlay.open .modal {
+        transform: translateY(0);
+      }
+
+      .commit-item {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .commit-header {
+        flex: 1;
+      }
+
+      .commit-message {
+        flex: 2;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .container {
+        padding: 0 32px;
+      }
+
+      .main {
+        padding: 32px;
+      }
+
+      .card-content {
+        padding: 20px;
+      }
+    }
+
+    /* Confirmation Dialog */
+    .confirm-dialog {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .confirm-dialog-message {
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+
+    .confirm-dialog-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    /* Collapsible Diff */
+    .diff-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 0;
+    }
+
+    .diff-toggle svg {
+      transition: transform 0.2s;
+    }
+
+    .diff-toggle.collapsed svg {
+      transform: rotate(-90deg);
+    }
+
+    .file-diff {
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .file-diff-content {
+      max-height: 400px;
+      overflow: auto;
+    }
+
+    .file-diff-content.collapsed {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 3v6m0 6v6"/>
+          <circle cx="6" cy="6" r="2"/>
+          <circle cx="18" cy="18" r="2"/>
+          <path d="M6 8v4a2 2 0 002 2h2m4 0h2a2 2 0 002-2V8"/>
+        </svg>
+        <span>WebGit</span>
+      </div>
+
+      <div class="branch-selector" id="branchSelector">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 3v12"/>
+          <circle cx="6" cy="18" r="3"/>
+          <circle cx="18" cy="6" r="3"/>
+          <path d="M18 9a9 9 0 01-9 9"/>
+        </svg>
+        <span class="branch-name" id="currentBranch">main</span>
+        <div class="sync-info" id="syncInfo"></div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </div>
+
+      <button class="menu-toggle" id="menuToggle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 12h18M3 6h18M3 18h18"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="nav" id="mainNav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a href="#" class="nav-link active" data-view="status">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"/>
+            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Changes
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" data-view="history">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          History
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" data-view="branches">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 3v12"/>
+            <circle cx="6" cy="18" r="3"/>
+            <circle cx="18" cy="6" r="3"/>
+            <path d="M18 9a9 9 0 01-9 9"/>
+          </svg>
+          Branches
+        </a>
+      </li>
+      <li class="nav-item">
+        <a href="#" class="nav-link" data-view="remotes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+          </svg>
+          Remotes
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Status View -->
+    <div class="view active" id="statusView">
+      <div id="statusContent">
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History View -->
+    <div class="view" id="historyView">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Commit History
+          </h2>
+        </div>
+        <ul class="commit-list" id="commitList">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Branches View -->
+    <div class="view" id="branchesView">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 3v12"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="18" cy="6" r="3"/>
+              <path d="M18 9a9 9 0 01-9 9"/>
+            </svg>
+            Local Branches
+          </h2>
+          <button class="btn btn-primary btn-sm" id="newBranchBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            New Branch
+          </button>
+        </div>
+        <ul class="branch-list" id="branchList">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Remotes View -->
+    <div class="view" id="remotesView">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+            Remote Repositories
+          </h2>
+        </div>
+        <div class="card-content" id="remotesContent">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commit Details View -->
+    <div class="view" id="commitDetailView">
+      <div class="card">
+        <div class="card-header">
+          <button class="btn btn-secondary btn-sm" id="backToHistory">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back
+          </button>
+          <h2 class="card-title" id="commitDetailTitle">Commit Details</h2>
+        </div>
+        <div class="card-content" id="commitDetailContent">
+          <div class="loading">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation (Mobile) -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav-item active" data-view="status">
+      <div class="nav-icon-wrapper">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+        </svg>
+        <span class="badge" id="changesBadge" style="display: none;">0</span>
+      </div>
+      <span>Changes</span>
+    </button>
+    <button class="bottom-nav-item" data-view="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <span>History</span>
+    </button>
+    <button class="bottom-nav-item" data-view="branches">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M6 3v12"/>
+        <circle cx="6" cy="18" r="3"/>
+        <circle cx="18" cy="6" r="3"/>
+        <path d="M18 9a9 9 0 01-9 9"/>
+      </svg>
+      <span>Branches</span>
+    </button>
+    <button class="bottom-nav-item" data-view="remotes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+      </svg>
+      <span>Remotes</span>
+    </button>
+  </nav>
+
+  <!-- Branch Modal -->
+  <div class="modal-overlay" id="branchModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="branchModalTitle">Switch Branch</h3>
+        <button class="modal-close" id="closeBranchModal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-content" id="branchModalContent">
+        <!-- Branch list or new branch form -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="confirmModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="confirmModalTitle">Confirm</h3>
+        <button class="modal-close" id="closeConfirmModal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-content">
+        <div class="confirm-dialog">
+          <p class="confirm-dialog-message" id="confirmMessage">Are you sure?</p>
+          <div class="confirm-dialog-actions">
+            <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+            <button class="btn btn-danger" id="confirmOk">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    // State
+    let state = {
+      status: null,
+      branches: null,
+      commits: null,
+      remotes: null,
+      selectedFiles: new Set(),
+      currentView: 'status'
+    };
+
+    // DOM Elements
+    const elements = {
+      menuToggle: document.getElementById('menuToggle'),
+      mainNav: document.getElementById('mainNav'),
+      branchSelector: document.getElementById('branchSelector'),
+      currentBranch: document.getElementById('currentBranch'),
+      syncInfo: document.getElementById('syncInfo'),
+      statusContent: document.getElementById('statusContent'),
+      commitList: document.getElementById('commitList'),
+      branchList: document.getElementById('branchList'),
+      remotesContent: document.getElementById('remotesContent'),
+      branchModal: document.getElementById('branchModal'),
+      branchModalTitle: document.getElementById('branchModalTitle'),
+      branchModalContent: document.getElementById('branchModalContent'),
+      closeBranchModal: document.getElementById('closeBranchModal'),
+      confirmModal: document.getElementById('confirmModal'),
+      confirmModalTitle: document.getElementById('confirmModalTitle'),
+      confirmMessage: document.getElementById('confirmMessage'),
+      confirmCancel: document.getElementById('confirmCancel'),
+      confirmOk: document.getElementById('confirmOk'),
+      closeConfirmModal: document.getElementById('closeConfirmModal'),
+      toastContainer: document.getElementById('toastContainer'),
+      changesBadge: document.getElementById('changesBadge'),
+      newBranchBtn: document.getElementById('newBranchBtn'),
+      backToHistory: document.getElementById('backToHistory'),
+      commitDetailContent: document.getElementById('commitDetailContent')
+    };
+
+    // API calls
+    async function api(endpoint, options = {}) {
+      try {
+        const response = await fetch(`/api${endpoint}`, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options,
+          body: options.body ? JSON.stringify(options.body) : undefined
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'API Error');
+        return data;
+      } catch (error) {
+        showToast(error.message, 'error');
+        throw error;
+      }
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      elements.toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Confirmation dialog
+    function confirm(title, message) {
+      return new Promise((resolve) => {
+        elements.confirmModalTitle.textContent = title;
+        elements.confirmMessage.textContent = message;
+        elements.confirmModal.classList.add('open');
+
+        const handleConfirm = () => {
+          elements.confirmModal.classList.remove('open');
+          cleanup();
+          resolve(true);
+        };
+
+        const handleCancel = () => {
+          elements.confirmModal.classList.remove('open');
+          cleanup();
+          resolve(false);
+        };
+
+        const cleanup = () => {
+          elements.confirmOk.removeEventListener('click', handleConfirm);
+          elements.confirmCancel.removeEventListener('click', handleCancel);
+          elements.closeConfirmModal.removeEventListener('click', handleCancel);
+        };
+
+        elements.confirmOk.addEventListener('click', handleConfirm);
+        elements.confirmCancel.addEventListener('click', handleCancel);
+        elements.closeConfirmModal.addEventListener('click', handleCancel);
+      });
+    }
+
+    // View switching
+    function switchView(viewName) {
+      state.currentView = viewName;
+
+      // Update nav links
+      document.querySelectorAll('.nav-link, .bottom-nav-item').forEach(link => {
+        link.classList.toggle('active', link.dataset.view === viewName);
+      });
+
+      // Update views
+      document.querySelectorAll('.view').forEach(view => {
+        view.classList.remove('active');
+      });
+      document.getElementById(`${viewName}View`).classList.add('active');
+
+      // Close mobile menu
+      elements.mainNav.classList.remove('open');
+
+      // Load view data
+      loadViewData(viewName);
+    }
+
+    async function loadViewData(viewName) {
+      switch (viewName) {
+        case 'status':
+          await loadStatus();
+          break;
+        case 'history':
+          await loadCommits();
+          break;
+        case 'branches':
+          await loadBranches();
+          break;
+        case 'remotes':
+          await loadRemotes();
+          break;
+      }
+    }
+
+    // Load status
+    async function loadStatus() {
+      try {
+        state.status = await api('/status');
+        renderStatus();
+        updateHeader();
+      } catch (error) {
+        elements.statusContent.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <h3 class="empty-state-title">Error loading status</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+
+    function updateHeader() {
+      if (!state.status) return;
+
+      elements.currentBranch.textContent = state.status.current || 'No branch';
+
+      let syncHtml = '';
+      if (state.status.ahead > 0) {
+        syncHtml += `<span class="ahead">↑${state.status.ahead}</span>`;
+      }
+      if (state.status.behind > 0) {
+        syncHtml += `<span class="behind">↓${state.status.behind}</span>`;
+      }
+      elements.syncInfo.innerHTML = syncHtml;
+
+      // Update changes badge
+      const totalChanges = (state.status.files.modified?.length || 0) +
+        (state.status.files.added?.length || 0) +
+        (state.status.files.deleted?.length || 0) +
+        (state.status.files.untracked?.length || 0);
+
+      if (totalChanges > 0) {
+        elements.changesBadge.textContent = totalChanges;
+        elements.changesBadge.style.display = 'block';
+      } else {
+        elements.changesBadge.style.display = 'none';
+      }
+    }
+
+    function renderStatus() {
+      const { files, isClean } = state.status;
+      const allFiles = [
+        ...(files.staged || []).map(f => ({ name: f, status: 'staged' })),
+        ...(files.modified || []).map(f => ({ name: f, status: 'modified' })),
+        ...(files.added || []).map(f => ({ name: f, status: 'added' })),
+        ...(files.deleted || []).map(f => ({ name: f, status: 'deleted' })),
+        ...(files.untracked || []).map(f => ({ name: f, status: 'untracked' }))
+      ];
+
+      // Remove duplicates (files can appear in both staged and other categories)
+      const uniqueFiles = allFiles.filter((file, index, self) =>
+        index === self.findIndex(f => f.name === file.name)
+      );
+
+      if (isClean && uniqueFiles.length === 0) {
+        elements.statusContent.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <h3 class="empty-state-title">Working tree clean</h3>
+            <p>No changes to commit</p>
+          </div>
+        `;
+        return;
+      }
+
+      const stagedFiles = files.staged || [];
+      const unstagedFiles = uniqueFiles.filter(f => !stagedFiles.includes(f.name));
+
+      let html = '';
+
+      // Staged files section
+      if (stagedFiles.length > 0) {
+        html += `
+          <div class="card">
+            <div class="section-header" data-section="staged">
+              <span class="section-title">Staged Changes (${stagedFiles.length})</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+            <div class="section-content" id="stagedSection">
+              <div class="select-all-row">
+                <input type="checkbox" class="file-checkbox" id="selectAllStaged">
+                <span class="file-count">Select all</span>
+                <button class="btn btn-secondary btn-sm" onclick="unstageSelected()">Unstage</button>
+              </div>
+              <ul class="file-list">
+                ${stagedFiles.map(file => renderFileItem(file, getFileStatus(file, files), true)).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Unstaged files section
+      if (unstagedFiles.length > 0) {
+        html += `
+          <div class="card">
+            <div class="section-header" data-section="unstaged">
+              <span class="section-title">Changes (${unstagedFiles.length})</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </div>
+            <div class="section-content" id="unstagedSection">
+              <div class="select-all-row">
+                <input type="checkbox" class="file-checkbox" id="selectAllUnstaged">
+                <span class="file-count">Select all</span>
+                <button class="btn btn-primary btn-sm" onclick="stageSelected()">Stage</button>
+                <button class="btn btn-danger btn-sm" onclick="discardSelected()">Discard</button>
+              </div>
+              <ul class="file-list">
+                ${unstagedFiles.map(f => renderFileItem(f.name, f.status, false)).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Commit form
+      if (stagedFiles.length > 0) {
+        html += `
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Commit</h2>
+            </div>
+            <div class="commit-form">
+              <textarea class="commit-textarea" id="commitMessage" placeholder="Enter commit message..." rows="3"></textarea>
+              <div class="char-count" id="charCount">0 characters</div>
+              <div class="commit-actions">
+                <button class="btn btn-primary" onclick="commitChanges()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                  Commit
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Diff viewer
+      html += `
+        <div class="card" id="diffCard" style="display: none;">
+          <div class="card-header">
+            <h2 class="card-title" id="diffTitle">Diff</h2>
+            <button class="btn btn-secondary btn-sm" onclick="closeDiff()">Close</button>
+          </div>
+          <div class="diff-container">
+            <div class="diff-content" id="diffContent"></div>
+          </div>
+        </div>
+      `;
+
+      elements.statusContent.innerHTML = html;
+
+      // Setup event listeners
+      setupStatusListeners();
+    }
+
+    function getFileStatus(file, files) {
+      if (files.modified?.includes(file)) return 'modified';
+      if (files.added?.includes(file)) return 'added';
+      if (files.deleted?.includes(file)) return 'deleted';
+      if (files.untracked?.includes(file)) return 'untracked';
+      if (files.renamed?.includes(file)) return 'renamed';
+      return 'modified';
+    }
+
+    function renderFileItem(name, status, staged) {
+      const statusLabel = {
+        modified: 'M',
+        added: 'A',
+        deleted: 'D',
+        untracked: 'U',
+        renamed: 'R',
+        staged: 'S'
+      };
+
+      return `
+        <li class="file-item" data-file="${name}" data-staged="${staged}">
+          <input type="checkbox" class="file-checkbox" data-file="${name}">
+          <span class="file-status ${status}">${statusLabel[status] || '?'}</span>
+          <span class="file-name">${name}</span>
+        </li>
+      `;
+    }
+
+    function setupStatusListeners() {
+      // File click to show diff
+      document.querySelectorAll('.file-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          if (e.target.classList.contains('file-checkbox')) return;
+          const file = item.dataset.file;
+          const staged = item.dataset.staged === 'true';
+          await showDiff(file, staged);
+        });
+      });
+
+      // Select all checkboxes
+      const selectAllStaged = document.getElementById('selectAllStaged');
+      const selectAllUnstaged = document.getElementById('selectAllUnstaged');
+
+      if (selectAllStaged) {
+        selectAllStaged.addEventListener('change', (e) => {
+          document.querySelectorAll('#stagedSection .file-checkbox[data-file]').forEach(cb => {
+            cb.checked = e.target.checked;
+          });
+        });
+      }
+
+      if (selectAllUnstaged) {
+        selectAllUnstaged.addEventListener('change', (e) => {
+          document.querySelectorAll('#unstagedSection .file-checkbox[data-file]').forEach(cb => {
+            cb.checked = e.target.checked;
+          });
+        });
+      }
+
+      // Commit message character count
+      const commitMessage = document.getElementById('commitMessage');
+      const charCount = document.getElementById('charCount');
+      if (commitMessage && charCount) {
+        commitMessage.addEventListener('input', () => {
+          charCount.textContent = `${commitMessage.value.length} characters`;
+        });
+
+        // Ctrl+Enter to commit
+        commitMessage.addEventListener('keydown', (e) => {
+          if (e.ctrlKey && e.key === 'Enter') {
+            commitChanges();
+          }
+        });
+      }
+
+      // Section collapse
+      document.querySelectorAll('.section-header').forEach(header => {
+        header.addEventListener('click', () => {
+          const section = header.dataset.section;
+          const content = document.getElementById(`${section}Section`);
+          if (content) {
+            content.classList.toggle('collapsed');
+            header.querySelector('svg').style.transform =
+              content.classList.contains('collapsed') ? 'rotate(-90deg)' : '';
+          }
+        });
+      });
+    }
+
+    async function showDiff(file, staged) {
+      const diffCard = document.getElementById('diffCard');
+      const diffTitle = document.getElementById('diffTitle');
+      const diffContent = document.getElementById('diffContent');
+
+      diffCard.style.display = 'block';
+      diffTitle.textContent = file;
+      diffContent.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+      try {
+        const { diff } = await api(`/diff?file=${encodeURIComponent(file)}&staged=${staged}`);
+        diffContent.innerHTML = renderDiff(diff);
+      } catch (error) {
+        diffContent.innerHTML = `<p style="padding: 16px;">Error loading diff</p>`;
+      }
+    }
+
+    function renderDiff(diff) {
+      if (!diff) return '<p style="padding: 16px;">No diff available</p>';
+
+      const lines = diff.split('\n');
+      let html = '';
+      let lineNum = 0;
+
+      lines.forEach(line => {
+        let className = '';
+        if (line.startsWith('+') && !line.startsWith('+++')) {
+          className = 'add';
+        } else if (line.startsWith('-') && !line.startsWith('---')) {
+          className = 'del';
+        } else if (line.startsWith('@@')) {
+          className = 'hunk';
+        }
+
+        lineNum++;
+        html += `
+          <div class="diff-line ${className}">
+            <span class="diff-line-num">${lineNum}</span>
+            <span class="diff-line-content">${escapeHtml(line)}</span>
+          </div>
+        `;
+      });
+
+      return html;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function closeDiff() {
+      document.getElementById('diffCard').style.display = 'none';
+    }
+
+    function getSelectedFiles(section) {
+      return Array.from(document.querySelectorAll(`#${section}Section .file-checkbox[data-file]:checked`))
+        .map(cb => cb.dataset.file);
+    }
+
+    async function stageSelected() {
+      const files = getSelectedFiles('unstaged');
+      if (files.length === 0) {
+        showToast('No files selected', 'error');
+        return;
+      }
+
+      try {
+        await api('/stage', { method: 'POST', body: { files } });
+        showToast(`Staged ${files.length} file(s)`, 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error already shown by api()
+      }
+    }
+
+    async function unstageSelected() {
+      const files = getSelectedFiles('staged');
+      if (files.length === 0) {
+        showToast('No files selected', 'error');
+        return;
+      }
+
+      try {
+        await api('/unstage', { method: 'POST', body: { files } });
+        showToast(`Unstaged ${files.length} file(s)`, 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error already shown
+      }
+    }
+
+    async function discardSelected() {
+      const files = getSelectedFiles('unstaged');
+      if (files.length === 0) {
+        showToast('No files selected', 'error');
+        return;
+      }
+
+      const confirmed = await confirm(
+        'Discard Changes',
+        `Are you sure you want to discard changes to ${files.length} file(s)? This cannot be undone.`
+      );
+
+      if (!confirmed) return;
+
+      try {
+        await api('/discard', { method: 'POST', body: { files } });
+        showToast(`Discarded changes to ${files.length} file(s)`, 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error already shown
+      }
+    }
+
+    async function commitChanges() {
+      const messageEl = document.getElementById('commitMessage');
+      const message = messageEl?.value.trim();
+
+      if (!message) {
+        showToast('Please enter a commit message', 'error');
+        messageEl?.focus();
+        return;
+      }
+
+      try {
+        const result = await api('/commit', { method: 'POST', body: { message } });
+        showToast(`Committed: ${result.commit}`, 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error already shown
+      }
+    }
+
+    // Load commits
+    async function loadCommits() {
+      try {
+        state.commits = await api('/commits?limit=50');
+        renderCommits();
+      } catch (error) {
+        elements.commitList.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <h3 class="empty-state-title">Error loading commits</h3>
+          </div>
+        `;
+      }
+    }
+
+    function renderCommits() {
+      if (!state.commits || state.commits.length === 0) {
+        elements.commitList.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <h3 class="empty-state-title">No commits yet</h3>
+            <p>Create your first commit to see history</p>
+          </div>
+        `;
+        return;
+      }
+
+      elements.commitList.innerHTML = state.commits.map(commit => `
+        <li class="commit-item" data-hash="${commit.hash}">
+          <div class="commit-header">
+            <div class="commit-avatar">${commit.author.charAt(0).toUpperCase()}</div>
+            <div class="commit-meta">
+              <div class="commit-author">${escapeHtml(commit.author)}</div>
+              <div class="commit-date">${formatDate(commit.date)}</div>
+            </div>
+            <span class="commit-hash">${commit.shortHash}</span>
+          </div>
+          <div class="commit-message">${escapeHtml(commit.message)}</div>
+        </li>
+      `).join('');
+
+      // Add click handlers
+      elements.commitList.querySelectorAll('.commit-item').forEach(item => {
+        item.addEventListener('click', () => showCommitDetails(item.dataset.hash));
+      });
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      if (days === 0) {
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        if (hours === 0) {
+          const minutes = Math.floor(diff / (1000 * 60));
+          return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        }
+        return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+      } else if (days === 1) {
+        return 'Yesterday';
+      } else if (days < 7) {
+        return `${days} days ago`;
+      } else {
+        return date.toLocaleDateString();
+      }
+    }
+
+    async function showCommitDetails(hash) {
+      switchView('commitDetail');
+
+      try {
+        const commit = await api(`/commits/${hash}`);
+        elements.commitDetailContent.innerHTML = `
+          <div style="margin-bottom: 24px;">
+            <div class="commit-header" style="margin-bottom: 16px;">
+              <div class="commit-avatar">${commit.author.charAt(0).toUpperCase()}</div>
+              <div class="commit-meta">
+                <div class="commit-author">${escapeHtml(commit.author)}</div>
+                <div class="commit-date">${formatDate(commit.date)}</div>
+              </div>
+              <span class="commit-hash">${commit.shortHash}</span>
+            </div>
+            <p style="line-height: 1.6;">${escapeHtml(commit.message)}</p>
+          </div>
+          <div class="diff-container">
+            <div class="diff-header">
+              <span class="diff-file-name">Changes</span>
+            </div>
+            <div class="diff-content" style="max-height: 500px; overflow: auto;">
+              ${renderDiff(commit.diff)}
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        elements.commitDetailContent.innerHTML = `
+          <div class="empty-state">
+            <h3 class="empty-state-title">Error loading commit</h3>
+          </div>
+        `;
+      }
+    }
+
+    // Load branches
+    async function loadBranches() {
+      try {
+        state.branches = await api('/branches');
+        renderBranches();
+      } catch (error) {
+        elements.branchList.innerHTML = `
+          <div class="empty-state">
+            <h3 class="empty-state-title">Error loading branches</h3>
+          </div>
+        `;
+      }
+    }
+
+    function renderBranches() {
+      if (!state.branches || state.branches.local.length === 0) {
+        elements.branchList.innerHTML = `
+          <div class="empty-state">
+            <h3 class="empty-state-title">No branches</h3>
+          </div>
+        `;
+        return;
+      }
+
+      elements.branchList.innerHTML = state.branches.local.map(branch => `
+        <li class="branch-item ${branch === state.branches.current ? 'current' : ''}" data-branch="${branch}">
+          <span class="branch-item-name">
+            ${branch === state.branches.current ? '● ' : ''}${escapeHtml(branch)}
+          </span>
+          <div class="branch-item-actions">
+            ${branch !== state.branches.current ? `
+              <button class="btn btn-secondary btn-sm" onclick="checkoutBranch('${branch}')">
+                Checkout
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteBranch('${branch}')">
+                Delete
+              </button>
+            ` : '<span style="color: var(--success);">Current</span>'}
+          </div>
+        </li>
+      `).join('');
+    }
+
+    async function checkoutBranch(branch) {
+      try {
+        await api('/branches/checkout', { method: 'POST', body: { branch } });
+        showToast(`Switched to ${branch}`, 'success');
+        await loadBranches();
+        await loadStatus();
+      } catch (error) {
+        // Error shown by api()
+      }
+    }
+
+    async function deleteBranch(branch) {
+      const confirmed = await confirm('Delete Branch', `Are you sure you want to delete branch "${branch}"?`);
+      if (!confirmed) return;
+
+      try {
+        await api(`/branches/${encodeURIComponent(branch)}`, { method: 'DELETE' });
+        showToast(`Deleted branch ${branch}`, 'success');
+        await loadBranches();
+      } catch (error) {
+        // Error shown
+      }
+    }
+
+    async function createBranch(name, checkout) {
+      try {
+        await api('/branches', { method: 'POST', body: { name, checkout } });
+        showToast(`Created branch ${name}`, 'success');
+        closeBranchModal();
+        await loadBranches();
+        if (checkout) await loadStatus();
+      } catch (error) {
+        // Error shown
+      }
+    }
+
+    function showNewBranchForm() {
+      elements.branchModalTitle.textContent = 'Create New Branch';
+      elements.branchModalContent.innerHTML = `
+        <div class="input-group">
+          <label class="input-label">Branch Name</label>
+          <input type="text" class="input" id="newBranchName" placeholder="feature/my-branch">
+        </div>
+        <div class="input-group">
+          <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="checkoutNewBranch" checked>
+            Switch to new branch after creation
+          </label>
+        </div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="handleCreateBranch()">
+          Create Branch
+        </button>
+      `;
+      elements.branchModal.classList.add('open');
+
+      // Focus input
+      setTimeout(() => document.getElementById('newBranchName')?.focus(), 100);
+    }
+
+    function handleCreateBranch() {
+      const name = document.getElementById('newBranchName')?.value.trim();
+      const checkout = document.getElementById('checkoutNewBranch')?.checked;
+
+      if (!name) {
+        showToast('Please enter a branch name', 'error');
+        return;
+      }
+
+      createBranch(name, checkout);
+    }
+
+    function showBranchSwitcher() {
+      elements.branchModalTitle.textContent = 'Switch Branch';
+
+      if (!state.branches) {
+        elements.branchModalContent.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+        loadBranches().then(() => {
+          renderBranchSwitcher();
+        });
+      } else {
+        renderBranchSwitcher();
+      }
+
+      elements.branchModal.classList.add('open');
+    }
+
+    function renderBranchSwitcher() {
+      elements.branchModalContent.innerHTML = `
+        <ul class="branch-list">
+          ${state.branches.local.map(branch => `
+            <li class="branch-item ${branch === state.branches.current ? 'current' : ''}"
+                onclick="${branch !== state.branches.current ? `checkoutBranch('${branch}'); closeBranchModal();` : ''}">
+              <span class="branch-item-name">
+                ${branch === state.branches.current ? '● ' : ''}${escapeHtml(branch)}
+              </span>
+            </li>
+          `).join('')}
+        </ul>
+      `;
+    }
+
+    function closeBranchModal() {
+      elements.branchModal.classList.remove('open');
+    }
+
+    // Load remotes
+    async function loadRemotes() {
+      try {
+        state.remotes = await api('/remotes');
+        renderRemotes();
+      } catch (error) {
+        elements.remotesContent.innerHTML = `
+          <div class="empty-state">
+            <h3 class="empty-state-title">Error loading remotes</h3>
+          </div>
+        `;
+      }
+    }
+
+    function renderRemotes() {
+      if (!state.remotes || state.remotes.length === 0) {
+        elements.remotesContent.innerHTML = `
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+            <h3 class="empty-state-title">No remotes configured</h3>
+            <p>Add a remote to sync with a remote repository</p>
+          </div>
+        `;
+        return;
+      }
+
+      elements.remotesContent.innerHTML = `
+        <div class="remote-info">
+          ${state.remotes.map(remote => `
+            <div class="remote-item">
+              <span class="remote-name">${escapeHtml(remote.name)}</span>
+              <span class="remote-url">${escapeHtml(remote.fetchUrl)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="remote-actions">
+          <button class="btn btn-secondary" onclick="fetchRemote()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/>
+            </svg>
+            Fetch
+          </button>
+          <button class="btn btn-secondary" onclick="pullRemote()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+            Pull
+          </button>
+          <button class="btn btn-primary" onclick="pushRemote()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 19V5M5 12l7-7 7 7"/>
+            </svg>
+            Push
+          </button>
+        </div>
+      `;
+    }
+
+    async function fetchRemote() {
+      try {
+        showToast('Fetching...', 'info');
+        await api('/fetch', { method: 'POST' });
+        showToast('Fetch completed', 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error shown
+      }
+    }
+
+    async function pullRemote() {
+      try {
+        showToast('Pulling...', 'info');
+        await api('/pull', { method: 'POST', body: {} });
+        showToast('Pull completed', 'success');
+        await loadStatus();
+        await loadCommits();
+      } catch (error) {
+        // Error shown
+      }
+    }
+
+    async function pushRemote() {
+      try {
+        showToast('Pushing...', 'info');
+        await api('/push', { method: 'POST', body: { setUpstream: true } });
+        showToast('Push completed', 'success');
+        await loadStatus();
+      } catch (error) {
+        // Error shown
+      }
+    }
+
+    // Event Listeners
+    elements.menuToggle.addEventListener('click', () => {
+      elements.mainNav.classList.toggle('open');
+    });
+
+    elements.branchSelector.addEventListener('click', showBranchSwitcher);
+    elements.closeBranchModal.addEventListener('click', closeBranchModal);
+    elements.newBranchBtn.addEventListener('click', showNewBranchForm);
+    elements.backToHistory.addEventListener('click', () => switchView('history'));
+
+    // Close modal on overlay click
+    elements.branchModal.addEventListener('click', (e) => {
+      if (e.target === elements.branchModal) closeBranchModal();
+    });
+
+    elements.confirmModal.addEventListener('click', (e) => {
+      if (e.target === elements.confirmModal) {
+        elements.confirmModal.classList.remove('open');
+      }
+    });
+
+    // Nav links
+    document.querySelectorAll('.nav-link, .bottom-nav-item').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (link.dataset.view) {
+          switchView(link.dataset.view);
+        }
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Escape to close modals
+      if (e.key === 'Escape') {
+        closeBranchModal();
+        elements.confirmModal.classList.remove('open');
+      }
+
+      // R to refresh
+      if (e.key === 'r' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        loadViewData(state.currentView);
+      }
+    });
+
+    // Initialize
+    loadStatus();
+  </script>
+</body>
+</html>

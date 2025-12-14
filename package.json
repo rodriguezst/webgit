@@ -1,0 +1,31 @@
+{
+  "name": "webgit",
+  "version": "1.0.0",
+  "description": "Standalone Git Viewer Web Client",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
+  },
+  "keywords": [
+    "git",
+    "web",
+    "viewer",
+    "client"
+  ],
+  "author": "ai-bot <ai-bot@rodriguezst.es>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "simple-git": "^3.22.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
