@@ -2,6 +2,7 @@ import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join, basename } from 'path';
 import { createGitAPI } from './git.js';
+import { randomBytes } from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,8 +21,25 @@ export function startServer(options = {}) {
 
   const app = express();
 
+  // Generate CSRF token for this session
+  const csrfToken = randomBytes(32).toString('hex');
+
   app.use(express.json());
   app.use(express.static(join(__dirname, '../public')));
+
+  // CSRF token endpoint
+  app.get('/api/csrf-token', (req, res) => {
+    res.json({ token: csrfToken });
+  });
+
+  // CSRF protection middleware for state-changing operations
+  function csrfProtection(req, res, next) {
+    const token = req.headers['x-csrf-token'];
+    if (token !== csrfToken) {
+      return res.status(403).json({ error: 'Invalid CSRF token' });
+    }
+    next();
+  }
 
   // Create git API
   const gitAPI = createGitAPI(repoPath);
@@ -45,7 +63,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/branches', async (req, res) => {
+  app.post('/api/branches', csrfProtection, async (req, res) => {
     try {
       const { name, checkout } = req.body;
       const result = await gitAPI.createBranch(name, checkout);
@@ -55,7 +73,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/branches/checkout', async (req, res) => {
+  app.post('/api/branches/checkout', csrfProtection, async (req, res) => {
     try {
       const { branch } = req.body;
       const result = await gitAPI.checkoutBranch(branch);
@@ -65,7 +83,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.delete('/api/branches/:name', async (req, res) => {
+  app.delete('/api/branches/:name', csrfProtection, async (req, res) => {
     try {
       const result = await gitAPI.deleteBranch(req.params.name);
       res.json(result);
@@ -103,7 +121,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/stage', async (req, res) => {
+  app.post('/api/stage', csrfProtection, async (req, res) => {
     try {
       const { files } = req.body;
       const result = await gitAPI.stageFiles(files);
@@ -113,7 +131,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/unstage', async (req, res) => {
+  app.post('/api/unstage', csrfProtection, async (req, res) => {
     try {
       const { files } = req.body;
       const result = await gitAPI.unstageFiles(files);
@@ -123,7 +141,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/commit', async (req, res) => {
+  app.post('/api/commit', csrfProtection, async (req, res) => {
     try {
       const { message } = req.body;
       const result = await gitAPI.commit(message);
@@ -133,7 +151,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/discard', async (req, res) => {
+  app.post('/api/discard', csrfProtection, async (req, res) => {
     try {
       const { files } = req.body;
       const result = await gitAPI.discardChanges(files);
@@ -152,7 +170,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/fetch', async (req, res) => {
+  app.post('/api/fetch', csrfProtection, async (req, res) => {
     try {
       const result = await gitAPI.fetch();
       res.json(result);
@@ -161,7 +179,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/pull', async (req, res) => {
+  app.post('/api/pull', csrfProtection, async (req, res) => {
     try {
       const { rebase } = req.body;
       const result = await gitAPI.pull(rebase);
@@ -171,7 +189,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/push', async (req, res) => {
+  app.post('/api/push', csrfProtection, async (req, res) => {
     try {
       const { force, setUpstream } = req.body;
       const result = await gitAPI.push(force, setUpstream);
@@ -190,7 +208,7 @@ export function startServer(options = {}) {
     }
   });
 
-  app.post('/api/config', async (req, res) => {
+  app.post('/api/config', csrfProtection, async (req, res) => {
     try {
       const { key, value } = req.body;
       const result = await gitAPI.setConfig(key, value);
