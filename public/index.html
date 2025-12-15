@@ -3,40 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1a1a2e">
-  <title>WebGit - Git Viewer</title>
+  <meta name="theme-color" content="#0a0a0b" id="themeColor">
+  <title>WebGit</title>
+  <script>
+    // Prevent flash - apply theme immediately
+    (function() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.getElementById('themeColor')?.setAttribute('content', '#f8f9fa');
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #6366f1;
-      --primary-dark: #4f46e5;
-      --success: #10b981;
-      --warning: #f59e0b;
+      --bg-base: #0a0a0b;
+      --bg-elevated: #111113;
+      --bg-surface: #18181b;
+      --bg-hover: #232326;
+      --bg-active: #2a2a2e;
+
+      --text-primary: #fafafa;
+      --text-secondary: #a1a1aa;
+      --text-tertiary: #71717a;
+      --text-muted: #52525b;
+
+      --accent: #10b981;
+      --accent-muted: rgba(16, 185, 129, 0.15);
+      --accent-hover: #059669;
+
+      --success: #22c55e;
+      --warning: #eab308;
       --danger: #ef4444;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
-      --gray-400: #9ca3af;
-      --gray-500: #6b7280;
-      --gray-600: #4b5563;
-      --gray-700: #374151;
-      --gray-800: #1f2937;
-      --gray-900: #111827;
-      --bg-dark: #0f0f1a;
-      --bg-card: #1a1a2e;
-      --bg-card-hover: #252542;
-      --text-primary: #f9fafb;
-      --text-secondary: #9ca3af;
-      --border: #2d2d4a;
-      --diff-add: #22543d;
-      --diff-add-line: #276749;
-      --diff-del: #742a2a;
-      --diff-del-line: #9b2c2c;
-      --radius: 8px;
+
+      --border: rgba(255, 255, 255, 0.06);
+      --border-subtle: rgba(255, 255, 255, 0.03);
+
+      --diff-add-bg: rgba(34, 197, 94, 0.1);
+      --diff-add-line: rgba(34, 197, 94, 0.2);
+      --diff-del-bg: rgba(239, 68, 68, 0.1);
+      --diff-del-line: rgba(239, 68, 68, 0.2);
+
+      --radius-sm: 6px;
+      --radius: 10px;
+      --radius-lg: 14px;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+
       --touch-target: 44px;
+      --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Light mode */
+    [data-theme="light"] {
+      --bg-base: #f8f9fa;
+      --bg-elevated: #ffffff;
+      --bg-surface: #f1f3f4;
+      --bg-hover: #e8eaed;
+      --bg-active: #dadce0;
+
+      --text-primary: #1f2937;
+      --text-secondary: #4b5563;
+      --text-tertiary: #6b7280;
+      --text-muted: #9ca3af;
+
+      --accent: #059669;
+      --accent-muted: rgba(5, 150, 105, 0.12);
+      --accent-hover: #047857;
+
+      --success: #16a34a;
+      --warning: #ca8a04;
+      --danger: #dc2626;
+
+      --border: rgba(0, 0, 0, 0.08);
+      --border-subtle: rgba(0, 0, 0, 0.04);
+
+      --diff-add-bg: rgba(22, 163, 74, 0.08);
+      --diff-add-line: rgba(22, 163, 74, 0.15);
+      --diff-del-bg: rgba(220, 38, 38, 0.08);
+      --diff-del-line: rgba(220, 38, 38, 0.15);
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
     }
 
     * {
@@ -45,113 +101,211 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: var(--bg-dark);
+    html {
+      font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-base);
       color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
       min-height: 100vh;
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Mobile-first base styles */
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 16px;
+    /* Fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeIn 0.4s ease-out forwards;
     }
 
     /* Header */
     .header {
-      background: var(--bg-card);
+      background: var(--bg-elevated);
       border-bottom: 1px solid var(--border);
-      padding: 12px 16px;
+      padding: 0 20px;
+      height: 56px;
       position: sticky;
       top: 0;
       z-index: 100;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .header-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      height: 100%;
+      max-width: 1600px;
+      margin: 0 auto;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      font-size: 18px;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
     }
 
-    .logo svg {
-      width: 24px;
-      height: 24px;
+    .logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon svg {
+      width: 16px;
+      height: 16px;
+      stroke: white;
     }
 
     .branch-selector {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: var(--bg-dark);
-      padding: 8px 12px;
+      gap: 10px;
+      background: var(--bg-surface);
+      padding: 8px 14px;
       border-radius: var(--radius);
       cursor: pointer;
-      min-height: var(--touch-target);
+      transition: all var(--transition);
+      border: 1px solid var(--border);
     }
 
     .branch-selector:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
+      border-color: var(--border);
+    }
+
+    .branch-selector svg {
+      color: var(--text-tertiary);
     }
 
     .branch-name {
       font-weight: 500;
-      max-width: 150px;
+      font-size: 13px;
+      max-width: 140px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      color: var(--text-primary);
     }
 
     .sync-info {
       display: flex;
-      gap: 8px;
-      font-size: 12px;
+      gap: 6px;
     }
 
     .ahead, .behind {
       display: flex;
       align-items: center;
-      gap: 4px;
-      padding: 2px 6px;
-      border-radius: 4px;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
     }
 
-    .ahead { background: var(--success); color: white; }
-    .behind { background: var(--warning); color: white; }
+    .ahead {
+      background: var(--accent-muted);
+      color: var(--accent);
+    }
+    .behind {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--warning);
+    }
 
-    /* Menu Toggle */
     .menu-toggle {
       display: flex;
       align-items: center;
       justify-content: center;
-      width: var(--touch-target);
-      height: var(--touch-target);
-      background: none;
+      width: 40px;
+      height: 40px;
+      background: transparent;
       border: none;
-      color: var(--text-primary);
+      color: var(--text-secondary);
       cursor: pointer;
       border-radius: var(--radius);
+      transition: all var(--transition);
     }
 
     .menu-toggle:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .theme-toggle:hover svg {
+      transform: rotate(15deg);
+    }
+
+    .theme-toggle .sun-icon {
+      display: none;
+    }
+
+    .theme-toggle .moon-icon {
+      display: block;
+    }
+
+    [data-theme="light"] .theme-toggle .sun-icon {
+      display: block;
+    }
+
+    [data-theme="light"] .theme-toggle .moon-icon {
+      display: none;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     /* Navigation */
     .nav {
       display: none;
-      background: var(--bg-card);
+      background: var(--bg-elevated);
       border-bottom: 1px solid var(--border);
     }
 
@@ -163,70 +317,123 @@
       display: flex;
       flex-direction: column;
       list-style: none;
+      padding: 8px;
     }
 
     .nav-item {
-      border-bottom: 1px solid var(--border);
+      margin-bottom: 2px;
     }
 
     .nav-link {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 16px;
+      padding: 12px 16px;
       color: var(--text-secondary);
       text-decoration: none;
-      min-height: var(--touch-target);
-      transition: all 0.2s;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 400;
+      transition: all var(--transition);
     }
 
-    .nav-link:hover, .nav-link.active {
+    .nav-link:hover {
       color: var(--text-primary);
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
     }
 
     .nav-link.active {
-      border-left: 3px solid var(--primary);
+      color: var(--text-primary);
+      background: var(--bg-active);
+    }
+
+    .nav-link.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 20px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
     }
 
     .nav-link svg {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
+      opacity: 0.7;
+    }
+
+    .nav-link.active svg {
+      opacity: 1;
+    }
+
+    .nav-icon-wrapper {
+      position: relative;
+    }
+
+    .badge {
+      position: absolute;
+      top: -6px;
+      right: -8px;
+      background: var(--accent);
+      color: white;
+      font-size: 10px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     /* Main Content */
     .main {
-      padding: 16px;
+      padding: 24px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
     }
 
     /* Cards */
     .card {
-      background: var(--bg-card);
+      background: var(--bg-elevated);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 16px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
       overflow: hidden;
+      box-shadow: var(--shadow-sm);
     }
 
     .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--bg-card-hover);
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .card-title {
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .card-title svg {
+      width: 16px;
+      height: 16px;
+      opacity: 0.6;
     }
 
     .card-content {
-      padding: 16px;
+      padding: 20px;
     }
 
     /* File List */
@@ -237,12 +444,11 @@
     .file-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      min-height: var(--touch-target);
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background var(--transition);
     }
 
     .file-item:last-child {
@@ -250,37 +456,55 @@
     }
 
     .file-item:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
     }
 
     .file-checkbox {
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       cursor: pointer;
-      accent-color: var(--primary);
+      accent-color: var(--accent);
+      border-radius: 4px;
     }
 
     .file-status {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 24px;
-      height: 24px;
-      border-radius: 4px;
-      font-size: 12px;
+      width: 22px;
+      height: 22px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
       font-weight: 600;
+      font-family: 'Fira Code', monospace;
     }
 
-    .file-status.modified { background: var(--warning); color: white; }
-    .file-status.added { background: var(--success); color: white; }
-    .file-status.deleted { background: var(--danger); color: white; }
-    .file-status.untracked { background: var(--gray-500); color: white; }
-    .file-status.renamed { background: var(--primary); color: white; }
+    .file-status.modified {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--warning);
+    }
+    .file-status.added {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+    .file-status.deleted {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+    .file-status.untracked {
+      background: rgba(161, 161, 170, 0.15);
+      color: var(--text-secondary);
+    }
+    .file-status.renamed {
+      background: var(--accent-muted);
+      color: var(--accent);
+    }
 
     .file-name {
       flex: 1;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 13px;
+      color: var(--text-primary);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -292,96 +516,111 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 10px 16px;
+      padding: 10px 18px;
       border-radius: var(--radius);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
       cursor: pointer;
       border: none;
-      min-height: var(--touch-target);
-      transition: all 0.2s;
+      transition: all var(--transition);
+      font-family: inherit;
     }
 
     .btn-primary {
-      background: var(--primary);
+      background: var(--accent);
       color: white;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
     }
 
     .btn-primary:hover {
-      background: var(--primary-dark);
+      background: var(--accent-hover);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      transform: translateY(-1px);
     }
 
     .btn-secondary {
-      background: var(--bg-card-hover);
+      background: var(--bg-surface);
       color: var(--text-primary);
       border: 1px solid var(--border);
     }
 
     .btn-secondary:hover {
-      background: var(--gray-700);
+      background: var(--bg-hover);
+      border-color: rgba(255, 255, 255, 0.1);
     }
 
     .btn-danger {
-      background: var(--danger);
-      color: white;
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
     }
 
     .btn-danger:hover {
-      background: #dc2626;
+      background: rgba(239, 68, 68, 0.25);
     }
 
     .btn-sm {
       padding: 6px 12px;
       font-size: 12px;
-      min-height: 32px;
     }
 
     .btn-icon {
-      padding: 8px;
-      min-width: var(--touch-target);
+      padding: 10px;
+      min-width: 40px;
+    }
+
+    .btn svg {
+      width: 16px;
+      height: 16px;
     }
 
     /* Commit Form */
     .commit-form {
-      padding: 16px;
+      padding: 20px;
     }
 
     .commit-textarea {
       width: 100%;
       min-height: 100px;
-      padding: 12px;
-      background: var(--bg-dark);
+      padding: 14px 16px;
+      background: var(--bg-base);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       color: var(--text-primary);
       font-family: inherit;
       font-size: 14px;
       resize: vertical;
+      transition: border-color var(--transition);
+    }
+
+    .commit-textarea::placeholder {
+      color: var(--text-muted);
     }
 
     .commit-textarea:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-muted);
     }
 
     .commit-actions {
       display: flex;
-      gap: 8px;
-      margin-top: 12px;
-      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
     }
 
     .char-count {
       font-size: 12px;
-      color: var(--text-secondary);
-      margin-top: 8px;
+      color: var(--text-tertiary);
+      margin-top: 10px;
     }
 
     /* Diff View */
     .diff-container {
-      background: var(--bg-dark);
+      background: var(--bg-base);
       border-radius: var(--radius);
       overflow: hidden;
+      border: 1px solid var(--border-subtle);
     }
 
     .diff-header {
@@ -389,20 +628,21 @@
       align-items: center;
       justify-content: space-between;
       padding: 12px 16px;
-      background: var(--bg-card-hover);
-      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .diff-file-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
     }
 
     .diff-content {
       overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 12px;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     .diff-line {
@@ -411,12 +651,12 @@
     }
 
     .diff-line-num {
-      padding: 0 12px;
-      color: var(--text-secondary);
-      background: var(--bg-card);
+      padding: 0 14px;
+      color: var(--text-muted);
+      background: var(--bg-elevated);
       user-select: none;
       text-align: right;
-      min-width: 50px;
+      min-width: 55px;
       display: none;
     }
 
@@ -427,7 +667,7 @@
     }
 
     .diff-line.add {
-      background: var(--diff-add);
+      background: var(--diff-add-bg);
     }
 
     .diff-line.add .diff-line-content {
@@ -435,7 +675,7 @@
     }
 
     .diff-line.del {
-      background: var(--diff-del);
+      background: var(--diff-del-bg);
     }
 
     .diff-line.del .diff-line-content {
@@ -443,8 +683,8 @@
     }
 
     .diff-line.hunk {
-      background: rgba(99, 102, 241, 0.2);
-      color: var(--primary);
+      background: var(--accent-muted);
+      color: var(--accent);
     }
 
     /* Commit History */
@@ -455,15 +695,15 @@
     .commit-item {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
+      gap: 10px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-subtle);
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background var(--transition);
     }
 
     .commit-item:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
     }
 
     .commit-item:last-child {
@@ -473,20 +713,22 @@
     .commit-header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .commit-avatar {
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--bg-active) 0%, var(--bg-surface) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 600;
-      font-size: 14px;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text-secondary);
       flex-shrink: 0;
+      border: 1px solid var(--border);
     }
 
     .commit-meta {
@@ -496,46 +738,50 @@
 
     .commit-author {
       font-weight: 500;
-      font-size: 14px;
+      font-size: 13px;
+      color: var(--text-primary);
     }
 
     .commit-date {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--text-tertiary);
+      margin-top: 2px;
     }
 
     .commit-hash {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      color: var(--primary);
-      background: var(--bg-dark);
-      padding: 4px 8px;
-      border-radius: 4px;
+      font-family: 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--accent-muted);
+      padding: 4px 10px;
+      border-radius: 20px;
     }
 
     .commit-message {
       font-size: 14px;
+      color: var(--text-secondary);
       line-height: 1.5;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
-    /* Branch Modal */
+    /* Modal */
     .modal-overlay {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
       display: flex;
       align-items: flex-end;
       justify-content: center;
       z-index: 200;
       opacity: 0;
       visibility: hidden;
-      transition: all 0.3s;
+      transition: all 0.3s ease;
     }
 
     .modal-overlay.open {
@@ -544,14 +790,17 @@
     }
 
     .modal {
-      background: var(--bg-card);
-      border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
       width: 100%;
-      max-width: 500px;
-      max-height: 80vh;
+      max-width: 480px;
+      max-height: 85vh;
       overflow: hidden;
       transform: translateY(100%);
-      transition: transform 0.3s;
+      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      border: 1px solid var(--border);
+      border-bottom: none;
+      box-shadow: var(--shadow-lg);
     }
 
     .modal-overlay.open .modal {
@@ -562,39 +811,42 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .modal-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
+      color: var(--text-primary);
     }
 
     .modal-close {
-      width: var(--touch-target);
-      height: var(--touch-target);
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: none;
+      background: transparent;
       border: none;
-      color: var(--text-secondary);
+      color: var(--text-tertiary);
       cursor: pointer;
       border-radius: var(--radius);
+      transition: all var(--transition);
     }
 
     .modal-close:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
       color: var(--text-primary);
     }
 
     .modal-content {
-      padding: 16px;
+      padding: 20px;
       overflow-y: auto;
-      max-height: 60vh;
+      max-height: 65vh;
     }
 
+    /* Branch List */
     .branch-list {
       list-style: none;
     }
@@ -603,24 +855,30 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
+      padding: 14px 16px;
       border-radius: var(--radius);
       cursor: pointer;
-      min-height: var(--touch-target);
+      transition: all var(--transition);
+      margin-bottom: 4px;
     }
 
     .branch-item:hover {
-      background: var(--bg-card-hover);
+      background: var(--bg-hover);
     }
 
     .branch-item.current {
-      background: rgba(99, 102, 241, 0.2);
-      border: 1px solid var(--primary);
+      background: var(--accent-muted);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
     .branch-item-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 14px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .branch-item.current .branch-item-name {
+      color: var(--accent);
     }
 
     .branch-item-actions {
@@ -631,28 +889,35 @@
     /* Input */
     .input {
       width: 100%;
-      padding: 12px;
-      background: var(--bg-dark);
+      padding: 12px 14px;
+      background: var(--bg-base);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       color: var(--text-primary);
       font-size: 14px;
-      min-height: var(--touch-target);
+      font-family: inherit;
+      transition: all var(--transition);
+    }
+
+    .input::placeholder {
+      color: var(--text-muted);
     }
 
     .input:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-muted);
     }
 
     .input-group {
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     .input-label {
       display: block;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 500;
+      color: var(--text-secondary);
       margin-bottom: 8px;
     }
 
@@ -665,66 +930,58 @@
     .remote-item {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding: 12px;
-      background: var(--bg-dark);
+      gap: 6px;
+      padding: 16px;
+      background: var(--bg-base);
       border-radius: var(--radius);
+      border: 1px solid var(--border-subtle);
     }
 
     .remote-name {
-      font-weight: 600;
+      font-weight: 500;
       font-size: 14px;
+      color: var(--text-primary);
     }
 
     .remote-url {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--text-tertiary);
       word-break: break-all;
     }
 
     .remote-actions {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 16px;
+      margin-top: 20px;
     }
 
     /* Empty State */
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 48px 24px;
       color: var(--text-secondary);
     }
 
     .empty-state svg {
       width: 48px;
       height: 48px;
-      margin-bottom: 16px;
-      opacity: 0.5;
+      margin-bottom: 18px;
+      opacity: 0.3;
+      stroke: var(--text-muted);
     }
 
     .empty-state-title {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 500;
       margin-bottom: 8px;
       color: var(--text-primary);
     }
 
-    .badge {
-      position: absolute;
-      top: -2px;
-      right: -2px;
-      background: var(--danger);
-      color: white;
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 600;
-    }
-
-    .nav-icon-wrapper {
-      position: relative;
+    .empty-state p {
+      font-size: 13px;
+      color: var(--text-tertiary);
     }
 
     /* Loading */
@@ -732,16 +989,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 48px;
     }
 
     .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin 1s linear infinite;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -751,40 +1008,42 @@
     /* Toast */
     .toast-container {
       position: fixed;
-      top: 80px;
+      top: 72px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 300;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      width: calc(100% - 32px);
-      max-width: 400px;
+      gap: 10px;
+      width: calc(100% - 40px);
+      max-width: 380px;
     }
 
     .toast {
-      padding: 12px 16px;
+      padding: 14px 18px;
       border-radius: var(--radius);
-      background: var(--bg-card);
+      background: var(--bg-elevated);
       border: 1px solid var(--border);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      animation: slideIn 0.3s ease;
+      box-shadow: var(--shadow);
+      animation: toastIn 0.3s ease-out;
+      font-size: 13px;
+      color: var(--text-primary);
     }
 
     .toast.success {
-      border-color: var(--success);
-      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+      background: rgba(34, 197, 94, 0.1);
     }
 
     .toast.error {
-      border-color: var(--danger);
+      border-color: rgba(239, 68, 68, 0.3);
       background: rgba(239, 68, 68, 0.1);
     }
 
-    @keyframes slideIn {
+    @keyframes toastIn {
       from {
         opacity: 0;
-        transform: translateY(-20px);
+        transform: translateY(-12px);
       }
       to {
         opacity: 1;
@@ -799,21 +1058,22 @@
 
     .view.active {
       display: block;
+      animation: fadeIn 0.3s ease-out;
     }
 
     /* Select All Row */
     .select-all-row {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: var(--bg-card-hover);
-      border-bottom: 1px solid var(--border);
+      gap: 14px;
+      padding: 12px 20px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .file-count {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: var(--text-tertiary);
     }
 
     /* Section Headers */
@@ -821,21 +1081,27 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      background: var(--bg-card-hover);
+      padding: 14px 20px;
+      background: var(--bg-surface);
       cursor: pointer;
+      transition: background var(--transition);
     }
 
     .section-header:hover {
-      background: var(--gray-700);
+      background: var(--bg-hover);
     }
 
     .section-title {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      color: var(--text-tertiary);
+    }
+
+    .section-header svg {
+      color: var(--text-muted);
+      transition: transform var(--transition);
     }
 
     .section-content {
@@ -846,100 +1112,17 @@
       display: none;
     }
 
-    /* Desktop Styles */
-    @media (min-width: 768px) {
-      .menu-toggle {
-        display: none;
-      }
-
-      .nav {
-        display: block;
-        position: fixed;
-        left: 0;
-        top: 56px;
-        bottom: 0;
-        width: 220px;
-        border-right: 1px solid var(--border);
-        border-bottom: none;
-      }
-
-      .nav-list {
-        padding: 16px 0;
-      }
-
-      .nav-item {
-        border-bottom: none;
-      }
-
-      .nav-link {
-        padding: 12px 20px;
-        border-radius: 0;
-      }
-
-      .nav-link.active {
-        border-left: 3px solid var(--primary);
-        background: rgba(99, 102, 241, 0.1);
-      }
-
-      .main {
-        margin-left: 220px;
-        padding: 24px;
-      }
-
-      .diff-line-num {
-        display: block;
-      }
-
-      .modal {
-        border-radius: var(--radius);
-        max-height: 70vh;
-      }
-
-      .modal-overlay {
-        align-items: center;
-      }
-
-      .modal-overlay.open .modal {
-        transform: translateY(0);
-      }
-
-      .commit-item {
-        flex-direction: row;
-        align-items: center;
-      }
-
-      .commit-header {
-        flex: 1;
-      }
-
-      .commit-message {
-        flex: 2;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .container {
-        padding: 0 32px;
-      }
-
-      .main {
-        padding: 32px;
-      }
-
-      .card-content {
-        padding: 20px;
-      }
-    }
-
-    /* Confirmation Dialog */
+    /* Confirm Dialog */
     .confirm-dialog {
-      padding: 24px;
+      padding: 28px 24px;
       text-align: center;
     }
 
     .confirm-dialog-message {
-      font-size: 16px;
-      margin-bottom: 24px;
+      font-size: 15px;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      line-height: 1.6;
     }
 
     .confirm-dialog-actions {
@@ -958,7 +1141,7 @@
     }
 
     .diff-toggle svg {
-      transition: transform 0.2s;
+      transition: transform var(--transition);
     }
 
     .diff-toggle.collapsed svg {
@@ -967,7 +1150,7 @@
 
     .file-diff {
       margin-bottom: 16px;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius);
       overflow: hidden;
     }
@@ -980,6 +1163,107 @@
     .file-diff-content.collapsed {
       display: none;
     }
+
+    /* Desktop Styles */
+    @media (min-width: 768px) {
+      .menu-toggle {
+        display: none;
+      }
+
+      .nav {
+        display: block;
+        position: fixed;
+        left: 0;
+        top: 56px;
+        bottom: 0;
+        width: 200px;
+        border-right: 1px solid var(--border);
+        background: var(--bg-elevated);
+      }
+
+      .nav-list {
+        padding: 16px 12px;
+      }
+
+      .nav-item {
+        position: relative;
+      }
+
+      .nav-link {
+        padding: 11px 14px;
+      }
+
+      .main {
+        margin-left: 200px;
+        padding: 32px;
+      }
+
+      .diff-line-num {
+        display: block;
+      }
+
+      .modal {
+        border-radius: var(--radius-lg);
+        max-height: 70vh;
+        border: 1px solid var(--border);
+      }
+
+      .modal-overlay {
+        align-items: center;
+      }
+
+      .commit-item {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .commit-header {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .commit-message {
+        flex: 2;
+        text-align: left;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .main {
+        padding: 40px 48px;
+      }
+
+      .card-content {
+        padding: 24px;
+      }
+
+      .nav {
+        width: 220px;
+      }
+
+      .main {
+        margin-left: 220px;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-active);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -987,18 +1271,17 @@
   <header class="header">
     <div class="header-content">
       <div class="logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 3v6m0 6v6"/>
-          <circle cx="6" cy="6" r="2"/>
-          <circle cx="18" cy="18" r="2"/>
-          <path d="M6 8v4a2 2 0 002 2h2m4 0h2a2 2 0 002-2V8"/>
-        </svg>
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 3v6m0 6v6"/>
+          </svg>
+        </div>
         <span>WebGit</span>
       </div>
 
       <div class="branch-selector" id="branchSelector">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M6 3v12"/>
           <circle cx="6" cy="18" r="3"/>
           <circle cx="18" cy="6" r="3"/>
@@ -1006,16 +1289,35 @@
         </svg>
         <span class="branch-name" id="currentBranch">main</span>
         <div class="sync-info" id="syncInfo"></div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M6 9l6 6 6-6"/>
         </svg>
       </div>
 
-      <button class="menu-toggle" id="menuToggle">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 12h18M3 6h18M3 18h18"/>
-        </svg>
-      </button>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+          <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/>
+            <line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/>
+            <line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+
+        <button class="menu-toggle" id="menuToggle">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 12h18M3 6h18M3 18h18"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -1083,7 +1385,7 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
             </svg>
@@ -1103,7 +1405,7 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M6 3v12"/>
               <circle cx="6" cy="18" r="3"/>
               <circle cx="18" cy="6" r="3"/>
@@ -1112,10 +1414,10 @@
             Local Branches
           </h2>
           <button class="btn btn-primary btn-sm" id="newBranchBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            New Branch
+            New
           </button>
         </div>
         <ul class="branch-list" id="branchList">
@@ -1131,7 +1433,7 @@
       <div class="card">
         <div class="card-header">
           <h2 class="card-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="2" y1="12" x2="22" y2="12"/>
               <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
@@ -1152,7 +1454,7 @@
       <div class="card">
         <div class="card-header">
           <button class="btn btn-secondary btn-sm" id="backToHistory">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             Back
@@ -1174,7 +1476,7 @@
       <div class="modal-header">
         <h3 class="modal-title" id="branchModalTitle">Switch Branch</h3>
         <button class="modal-close" id="closeBranchModal">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
@@ -1191,7 +1493,7 @@
       <div class="modal-header">
         <h3 class="modal-title" id="confirmModalTitle">Confirm</h3>
         <button class="modal-close" id="closeConfirmModal">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
@@ -1224,6 +1526,7 @@
 
     // DOM Elements
     const elements = {
+      themeToggle: document.getElementById('themeToggle'),
       menuToggle: document.getElementById('menuToggle'),
       mainNav: document.getElementById('mainNav'),
       branchSelector: document.getElementById('branchSelector'),
@@ -1389,7 +1692,7 @@
 
       if (totalChanges > 0) {
         elements.changesBadge.textContent = totalChanges;
-        elements.changesBadge.style.display = 'block';
+        elements.changesBadge.style.display = 'flex';
       } else {
         elements.changesBadge.style.display = 'none';
       }
@@ -1435,7 +1738,7 @@
           <div class="card">
             <div class="section-header" data-section="staged">
               <span class="section-title">Staged Changes (${stagedFiles.length})</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 9l6 6 6-6"/>
               </svg>
             </div>
@@ -1459,7 +1762,7 @@
           <div class="card">
             <div class="section-header" data-section="unstaged">
               <span class="section-title">Changes (${unstagedFiles.length})</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M6 9l6 6 6-6"/>
               </svg>
             </div>
@@ -1486,15 +1789,15 @@
               <h2 class="card-title">Commit</h2>
             </div>
             <div class="commit-form">
-              <textarea class="commit-textarea" id="commitMessage" placeholder="Enter commit message..." rows="3"></textarea>
+              <textarea class="commit-textarea" id="commitMessage" placeholder="Describe your changes..." rows="3"></textarea>
               <div class="char-count" id="charCount">0 characters</div>
               <div class="commit-actions">
                 <button class="btn btn-primary" onclick="commitChanges()">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
                     <polyline points="22 4 12 14.01 9 11.01"/>
                   </svg>
-                  Commit
+                  Commit Changes
                 </button>
               </div>
             </div>
@@ -1623,12 +1926,12 @@
         const { diff } = await api(`/diff?file=${encodeURIComponent(file)}&staged=${staged}`);
         diffContent.innerHTML = renderDiff(diff);
       } catch (error) {
-        diffContent.innerHTML = `<p style="padding: 16px;">Error loading diff</p>`;
+        diffContent.innerHTML = `<p style="padding: 16px; color: var(--text-tertiary);">Error loading diff</p>`;
       }
     }
 
     function renderDiff(diff) {
-      if (!diff) return '<p style="padding: 16px;">No diff available</p>';
+      if (!diff) return '<p style="padding: 16px; color: var(--text-tertiary);">No diff available</p>';
 
       const lines = diff.split('\n');
       let html = '';
@@ -1836,7 +2139,7 @@
               </div>
               <span class="commit-hash">${commit.shortHash}</span>
             </div>
-            <p style="line-height: 1.6;">${escapeHtml(commit.message)}</p>
+            <p style="line-height: 1.6; color: var(--text-secondary);">${escapeHtml(commit.message)}</p>
           </div>
           <div class="diff-container">
             <div class="diff-header">
@@ -1888,12 +2191,12 @@
           <div class="branch-item-actions">
             ${branch !== state.branches.current ? `
               <button class="btn btn-secondary btn-sm" onclick="checkoutBranch('${branch}')">
-                Checkout
+                Switch
               </button>
               <button class="btn btn-danger btn-sm" onclick="deleteBranch('${branch}')">
                 Delete
               </button>
-            ` : '<span style="color: var(--success);">Current</span>'}
+            ` : '<span style="color: var(--accent); font-size: 12px; font-weight: 500;">Current</span>'}
           </div>
         </li>
       `).join('');
@@ -1943,8 +2246,8 @@
           <input type="text" class="input" id="newBranchName" placeholder="feature/my-branch">
         </div>
         <div class="input-group">
-          <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="checkoutNewBranch" checked>
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: var(--text-secondary);">
+            <input type="checkbox" id="checkoutNewBranch" checked style="accent-color: var(--accent);">
             Switch to new branch after creation
           </label>
         </div>
@@ -2045,19 +2348,19 @@
         </div>
         <div class="remote-actions">
           <button class="btn btn-secondary" onclick="fetchRemote()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/>
             </svg>
             Fetch
           </button>
           <button class="btn btn-secondary" onclick="pullRemote()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 5v14M5 12l7 7 7-7"/>
             </svg>
             Pull
           </button>
           <button class="btn btn-primary" onclick="pushRemote()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 19V5M5 12l7-7 7 7"/>
             </svg>
             Push
@@ -2100,7 +2403,26 @@
       }
     }
 
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+      if (newTheme === 'light') {
+        html.setAttribute('data-theme', 'light');
+        document.getElementById('themeColor').setAttribute('content', '#f8f9fa');
+      } else {
+        html.removeAttribute('data-theme');
+        document.getElementById('themeColor').setAttribute('content', '#0a0a0b');
+      }
+
+      localStorage.setItem('theme', newTheme);
+    }
+
     // Event Listeners
+    elements.themeToggle.addEventListener('click', toggleTheme);
+
     elements.menuToggle.addEventListener('click', () => {
       elements.mainNav.classList.toggle('open');
     });
