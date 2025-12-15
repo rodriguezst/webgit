@@ -1,9 +1,17 @@
 {
   "name": "webgit",
   "version": "1.0.0",
-  "description": "Standalone Git Viewer Web Client",
+  "description": "A standalone Git viewer web client - browse your git repositories from the browser",
   "main": "src/server.js",
   "type": "module",
+  "bin": {
+    "webgit": "./bin/webgit.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "public"
+  ],
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -14,11 +22,23 @@
     "git",
     "web",
     "viewer",
-    "client"
+    "client",
+    "cli",
+    "repository",
+    "browser"
   ],
   "author": "ai-bot <ai-bot@rodriguezst.es>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rodriguezst/webgit.git"
+  },
+  "homepage": "https://github.com/rodriguezst/webgit#readme",
+  "bugs": {
+    "url": "https://github.com/rodriguezst/webgit/issues"
+  },
   "dependencies": {
+    "commander": "^12.1.0",
     "express": "^4.18.2",
     "simple-git": "^3.22.0"
   },

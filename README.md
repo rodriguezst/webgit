@@ -40,52 +40,75 @@ A standalone, lightweight Git web viewer that can be launched from any git repos
 
 ## Installation
 
-```bash
-# Clone the repository
-git clone https://github.com/rodriguezst/webgit.git
-cd webgit
+### Global Installation (Recommended)
 
-# Install dependencies
-npm install
+Install WebGit globally to use it from any directory:
+
+```bash
+npm install -g webgit
+```
+
+### Run Without Installing
+
+You can run WebGit directly without installing using npx:
+
+```bash
+npx webgit
 ```
 
 ## Usage
 
-### Basic Usage
-
-Launch WebGit from any git repository:
+### Quick Start
 
 ```bash
-# Navigate to your git repository
+# Navigate to any git repository and run:
 cd /path/to/your/repo
+webgit
 
-# Start WebGit (pointing to current directory)
-REPO_PATH=$(pwd) npx webgit
-
-# Or run from the webgit directory
-cd /path/to/webgit
-REPO_PATH=/path/to/your/repo npm start
+# Or run without installing:
+npx webgit
 ```
 
-### Configuration
+Then open http://localhost:3000 in your browser.
 
-WebGit can be configured using environment variables:
+### CLI Options
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `3000` | Port to run the server on |
-| `REPO_PATH` | `process.cwd()` | Path to the git repository |
+```
+Usage: webgit [options]
+
+Options:
+  -V, --version      Output version number
+  -p, --port <port>  Port to run the server on (default: "3000")
+  -d, --dir <path>   Path to the git repository (default: current directory)
+  -o, --open         Open browser automatically after starting
+  -h, --help         Display help
+```
 
 ### Examples
 
 ```bash
 # Run on a different port
-PORT=8080 npm start
+webgit --port 8080
 
-# Run for a specific repository
-REPO_PATH=/home/user/myproject npm start
+# View a specific repository without changing directory
+webgit --dir /path/to/your/repo
 
-# Development mode with auto-reload
+# Run on custom port with auto-open browser
+webgit --port 4000 --open
+
+# Using npx with options
+npx webgit --dir /path/to/repo --port 8080
+```
+
+### Development
+
+```bash
+# Clone and install for development
+git clone https://github.com/rodriguezst/webgit.git
+cd webgit
+npm install
+
+# Run in development mode with auto-reload
 npm run dev
 ```
 
