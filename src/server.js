@@ -41,6 +41,26 @@ export function startServer(options = {}) {
     next();
   }
 
+  // Error sanitization helper
+  function sanitizeError(error) {
+    // Remove file paths and sensitive information from error messages
+    let message = error.message || 'An error occurred';
+
+    // Remove absolute paths
+    message = message.replace(/\/[\w\-./]+/g, '[path]');
+    message = message.replace(/[A-Z]:\\[\w\-\\/.]+/g, '[path]');
+
+    // Remove stack traces if present
+    message = message.split('\n')[0];
+
+    // Limit message length
+    if (message.length > 200) {
+      message = message.substring(0, 200) + '...';
+    }
+
+    return message;
+  }
+
   // Create git API
   const gitAPI = createGitAPI(repoPath);
 
@@ -50,7 +70,7 @@ export function startServer(options = {}) {
       const status = await gitAPI.getStatus();
       res.json(status);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -59,7 +79,7 @@ export function startServer(options = {}) {
       const branches = await gitAPI.getBranches();
       res.json(branches);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -69,7 +89,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.createBranch(name, checkout);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -79,7 +99,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.checkoutBranch(branch);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -88,7 +108,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.deleteBranch(req.params.name);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -98,7 +118,7 @@ export function startServer(options = {}) {
       const commits = await gitAPI.getCommitHistory(limit);
       res.json(commits);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -107,7 +127,7 @@ export function startServer(options = {}) {
       const commit = await gitAPI.getCommitDetails(req.params.hash);
       res.json(commit);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -117,7 +137,7 @@ export function startServer(options = {}) {
       const diff = await gitAPI.getDiff(file, staged === 'true');
       res.json({ diff });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -127,7 +147,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.stageFiles(files);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -137,7 +157,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.unstageFiles(files);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -147,7 +167,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.commit(message);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -157,7 +177,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.discardChanges(files);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -166,7 +186,7 @@ export function startServer(options = {}) {
       const remotes = await gitAPI.getRemotes();
       res.json(remotes);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -175,7 +195,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.fetch();
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -185,7 +205,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.pull(rebase);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -195,7 +215,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.push(force, setUpstream);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -204,7 +224,7 @@ export function startServer(options = {}) {
       const config = await gitAPI.getConfig();
       res.json(config);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
@@ -214,7 +234,7 @@ export function startServer(options = {}) {
       const result = await gitAPI.setConfig(key, value);
       res.json(result);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: sanitizeError(error) });
     }
   });
 
