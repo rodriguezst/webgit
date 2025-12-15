@@ -36,6 +36,58 @@ export function createGitAPI(repoPath) {
     }
   }
 
+  // Validate branch name
+  function validateBranchName(name) {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      throw new Error('Branch name must be a non-empty string');
+    }
+
+    // Git branch name restrictions
+    const invalidPatterns = [
+      /^\./, // Cannot start with dot
+      /\.\./,  // Cannot contain two consecutive dots
+      /[\x00-\x1f\x7f]/, // No control characters
+      /[ ~^:?*\[\]\\]/, // No special characters
+      /@\{/, // No @{
+      /\/$/, // Cannot end with /
+      /\.lock$/, // Cannot end with .lock
+      /^@$/, // Cannot be just @
+    ];
+
+    for (const pattern of invalidPatterns) {
+      if (pattern.test(name)) {
+        throw new Error('Invalid branch name format');
+      }
+    }
+
+    if (name.length > 255) {
+      throw new Error('Branch name too long (max 255 characters)');
+    }
+  }
+
+  // Validate commit hash
+  function validateCommitHash(hash) {
+    if (typeof hash !== 'string') {
+      throw new Error('Commit hash must be a string');
+    }
+
+    // Git hashes are SHA-1 (40 hex chars) or can be abbreviated (min 4 chars)
+    if (!/^[a-f0-9]{4,40}$/i.test(hash)) {
+      throw new Error('Invalid commit hash format');
+    }
+  }
+
+  // Validate commit message
+  function validateCommitMessage(message) {
+    if (typeof message !== 'string' || message.trim().length === 0) {
+      throw new Error('Commit message must be a non-empty string');
+    }
+
+    if (message.length > 10000) {
+      throw new Error('Commit message too long (max 10000 characters)');
+    }
+  }
+
   return {
     async getStatus() {
       const status = await git.status();
@@ -95,6 +147,7 @@ export function createGitAPI(repoPath) {
     },
 
     async createBranch(name, checkout = false) {
+      validateBranchName(name);
       if (checkout) {
         await git.checkoutLocalBranch(name);
       } else {
@@ -104,11 +157,13 @@ export function createGitAPI(repoPath) {
     },
 
     async checkoutBranch(branch) {
+      validateBranchName(branch);
       await git.checkout(branch);
       return { success: true, branch };
     },
 
     async deleteBranch(name) {
+      validateBranchName(name);
       await git.deleteLocalBranch(name);
       return { success: true, branch: name };
     },
@@ -132,6 +187,7 @@ export function createGitAPI(repoPath) {
     },
 
     async getCommitDetails(hash) {
+      validateCommitHash(hash);
       // Use command-line style arguments to get a specific commit by hash
       const log = await git.log(['-1', hash]);
       const commit = log.latest;
@@ -190,6 +246,7 @@ export function createGitAPI(repoPath) {
     },
 
     async commit(message) {
+      validateCommitMessage(message);
       const result = await git.commit(message);
       return {
         success: true,
