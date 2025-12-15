@@ -1852,11 +1852,12 @@
         staged: 'S'
       };
 
+      const escapedName = escapeHtml(name);
       return `
-        <li class="file-item" data-file="${name}" data-staged="${staged}">
-          <input type="checkbox" class="file-checkbox" data-file="${name}">
+        <li class="file-item" data-file="${escapedName}" data-staged="${staged}">
+          <input type="checkbox" class="file-checkbox" data-file="${escapedName}">
           <span class="file-status ${status}">${statusLabel[status] || '?'}</span>
-          <span class="file-name">${name}</span>
+          <span class="file-name">${escapedName}</span>
         </li>
       `;
     }
@@ -2192,23 +2193,36 @@
         return;
       }
 
-      elements.branchList.innerHTML = state.branches.local.map(branch => `
-        <li class="branch-item ${branch === state.branches.current ? 'current' : ''}" data-branch="${branch}">
-          <span class="branch-item-name">
-            ${branch === state.branches.current ? '● ' : ''}${escapeHtml(branch)}
-          </span>
-          <div class="branch-item-actions">
-            ${branch !== state.branches.current ? `
-              <button class="btn btn-secondary btn-sm" onclick="checkoutBranch('${branch}')">
-                Switch
-              </button>
-              <button class="btn btn-danger btn-sm" onclick="deleteBranch('${branch}')">
-                Delete
-              </button>
-            ` : '<span style="color: var(--accent); font-size: 12px; font-weight: 500;">Current</span>'}
-          </div>
-        </li>
-      `).join('');
+      const escapedBranch = escapeHtml(state.branches.current);
+      elements.branchList.innerHTML = state.branches.local.map(branch => {
+        const isCurrent = branch === state.branches.current;
+        const escapedBranchName = escapeHtml(branch);
+        return `
+          <li class="branch-item ${isCurrent ? 'current' : ''}" data-branch="${escapedBranchName}">
+            <span class="branch-item-name">
+              ${isCurrent ? '● ' : ''}${escapedBranchName}
+            </span>
+            <div class="branch-item-actions">
+              ${!isCurrent ? `
+                <button class="btn btn-secondary btn-sm" data-action="checkout" data-branch-target="${escapedBranchName}">
+                  Switch
+                </button>
+                <button class="btn btn-danger btn-sm" data-action="delete" data-branch-target="${escapedBranchName}">
+                  Delete
+                </button>
+              ` : '<span style="color: var(--accent); font-size: 12px; font-weight: 500;">Current</span>'}
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      // Attach event listeners after rendering
+      elements.branchList.querySelectorAll('[data-action="checkout"]').forEach(btn => {
+        btn.addEventListener('click', () => checkoutBranch(btn.dataset.branchTarget));
+      });
+      elements.branchList.querySelectorAll('[data-action="delete"]').forEach(btn => {
+        btn.addEventListener('click', () => deleteBranch(btn.dataset.branchTarget));
+      });
     }
 
     async function checkoutBranch(branch) {
@@ -2300,16 +2314,27 @@
     function renderBranchSwitcher() {
       elements.branchModalContent.innerHTML = `
         <ul class="branch-list">
-          ${state.branches.local.map(branch => `
-            <li class="branch-item ${branch === state.branches.current ? 'current' : ''}"
-                onclick="${branch !== state.branches.current ? `checkoutBranch('${branch}'); closeBranchModal();` : ''}">
-              <span class="branch-item-name">
-                ${branch === state.branches.current ? '● ' : ''}${escapeHtml(branch)}
-              </span>
-            </li>
-          `).join('')}
+          ${state.branches.local.map(branch => {
+            const isCurrent = branch === state.branches.current;
+            const escapedBranch = escapeHtml(branch);
+            return `
+              <li class="branch-item ${isCurrent ? 'current' : ''}" ${!isCurrent ? `data-switch-branch="${escapedBranch}"` : ''} style="${!isCurrent ? 'cursor: pointer;' : ''}">
+                <span class="branch-item-name">
+                  ${isCurrent ? '● ' : ''}${escapedBranch}
+                </span>
+              </li>
+            `;
+          }).join('')}
         </ul>
       `;
+
+      // Attach event listeners for branch switching
+      elements.branchModalContent.querySelectorAll('[data-switch-branch]').forEach(item => {
+        item.addEventListener('click', () => {
+          checkoutBranch(item.dataset.switchBranch);
+          closeBranchModal();
+        });
+      });
     }
 
     function closeBranchModal() {
