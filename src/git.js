@@ -214,6 +214,22 @@ export function createGitAPI(repoPath) {
     },
 
     async setConfig(key, value) {
+      // Whitelist of allowed config keys to prevent command injection
+      const allowedKeys = [
+        'user.name',
+        'user.email',
+        'init.defaultbranch'
+      ];
+
+      if (!allowedKeys.includes(key)) {
+        throw new Error(`Configuration key '${key}' is not allowed. Allowed keys: ${allowedKeys.join(', ')}`);
+      }
+
+      // Validate value is a non-empty string
+      if (typeof value !== 'string' || value.trim().length === 0) {
+        throw new Error('Configuration value must be a non-empty string');
+      }
+
       await git.addConfig(key, value);
       return { success: true };
     }
