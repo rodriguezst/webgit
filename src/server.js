@@ -218,12 +218,13 @@ export function startServer(options = {}) {
     }
   });
 
-  const server = app.listen(port, () => {
+  const server = app.listen(port, '127.0.0.1', () => {
     const url = `http://localhost:${port}`;
     console.log(`\n  WebGit - Git Repository Viewer\n`);
     console.log(`  Repository: ${repoName}`);
     console.log(`  Path:       ${repoPath}`);
-    console.log(`  Server:     ${url}\n`);
+    console.log(`  Server:     ${url}`);
+    console.log(`  Listening:  127.0.0.1 only\n`);
 
     // Open browser if requested
     if (options.open) {
