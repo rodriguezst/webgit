@@ -1,7 +1,40 @@
 import simpleGit from 'simple-git';
+import { normalize, isAbsolute, relative } from 'path';
 
 export function createGitAPI(repoPath) {
   const git = simpleGit(repoPath);
+
+  // Validate file paths to prevent path traversal attacks
+  function validateFilePaths(files) {
+    if (!files) return;
+
+    const fileArray = Array.isArray(files) ? files : [files];
+
+    for (const file of fileArray) {
+      if (typeof file !== 'string') {
+        throw new Error('File path must be a string');
+      }
+
+      // Normalize the path to resolve any . or .. segments
+      const normalizedPath = normalize(file);
+
+      // Check for absolute paths
+      if (isAbsolute(normalizedPath)) {
+        throw new Error('Absolute paths are not allowed');
+      }
+
+      // Check for path traversal attempts
+      if (normalizedPath.startsWith('..') || normalizedPath.includes('/..') || normalizedPath.includes('\\..')) {
+        throw new Error('Path traversal attempts are not allowed');
+      }
+
+      // Additional check: ensure the relative path doesn't escape the repo
+      const resolvedPath = relative(repoPath, normalize(`${repoPath}/${normalizedPath}`));
+      if (resolvedPath.startsWith('..')) {
+        throw new Error('Path must be within the repository');
+      }
+    }
+  }
 
   return {
     async getStatus() {
@@ -126,6 +159,9 @@ export function createGitAPI(repoPath) {
     },
 
     async getDiff(file, staged = false) {
+      if (file) {
+        validateFilePaths(file);
+      }
       const args = staged ? ['--cached'] : [];
       if (file) {
         args.push('--', file);
@@ -135,6 +171,7 @@ export function createGitAPI(repoPath) {
 
     async stageFiles(files) {
       if (files && files.length > 0) {
+        validateFilePaths(files);
         await git.add(files);
       } else {
         await git.add('.');
@@ -144,6 +181,7 @@ export function createGitAPI(repoPath) {
 
     async unstageFiles(files) {
       if (files && files.length > 0) {
+        validateFilePaths(files);
         await git.reset(['HEAD', '--', ...files]);
       } else {
         await git.reset(['HEAD']);
@@ -162,6 +200,7 @@ export function createGitAPI(repoPath) {
 
     async discardChanges(files) {
       if (files && files.length > 0) {
+        validateFilePaths(files);
         await git.checkout(['--', ...files]);
       } else {
         await git.checkout(['--', '.']);
