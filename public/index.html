@@ -648,6 +648,9 @@
     .diff-line {
       display: flex;
       min-width: max-content;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
     }
 
     .diff-line-num {
@@ -658,12 +661,18 @@
       text-align: right;
       min-width: 55px;
       display: none;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
     }
 
     .diff-line-content {
       flex: 1;
       padding: 0 16px;
       white-space: pre;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
     }
 
     .diff-line.add {
