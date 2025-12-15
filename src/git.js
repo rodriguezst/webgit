@@ -99,7 +99,8 @@ export function createGitAPI(repoPath) {
     },
 
     async getCommitDetails(hash) {
-      const log = await git.log({ maxCount: 1, from: hash, to: hash });
+      // Use command-line style arguments to get a specific commit by hash
+      const log = await git.log(['-1', hash]);
       const commit = log.latest;
 
       if (!commit) {
@@ -107,7 +108,7 @@ export function createGitAPI(repoPath) {
       }
 
       const diff = await git.diff([`${hash}^..${hash}`]).catch(() =>
-        git.diff([hash]) // For first commit
+        git.show([hash, '--format=']) // For first commit, use git show
       );
 
       const show = await git.show([hash, '--stat', '--name-status']);
