@@ -24,6 +24,36 @@ export function startServer(options = {}) {
   // Generate CSRF token for this session
   const csrfToken = randomBytes(32).toString('hex');
 
+  // Security headers middleware
+  app.use((req, res, next) => {
+    // Prevent clickjacking
+    res.setHeader('X-Frame-Options', 'DENY');
+
+    // Prevent MIME type sniffing
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // Enable XSS protection
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+
+    // Referrer policy
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    // Content Security Policy
+    res.setHeader('Content-Security-Policy', [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'", // unsafe-inline needed for inline scripts
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", // Google Fonts
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data:",
+      "connect-src 'self'",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; '));
+
+    next();
+  });
+
   app.use(express.json());
   app.use(express.static(join(__dirname, '../public')));
 
