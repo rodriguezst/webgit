@@ -27,14 +27,31 @@ test.describe('WebGit - Status View', () => {
     // Take screenshot
     await page.screenshot({ path: 'screenshots/status-content.png', fullPage: true });
   });
+
+  test('should show changes badge when there are changes', async ({ page }) => {
+    await page.goto('/');
+
+    // Wait for status to load
+    await page.waitForSelector('#statusContent');
+
+    // The badge should be in the nav
+    const badge = page.locator('#changesBadge');
+    await expect(badge).toBeAttached();
+  });
 });
 
 test.describe('WebGit - History View', () => {
   test('should navigate to history view', async ({ page }) => {
     await page.goto('/');
 
-    // Click on visible history nav link (use bottom nav on mobile)
-    await page.click('.bottom-nav-item[data-view="history"], .nav-link[data-view="history"]:visible');
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
+    // Click on history nav link
+    await page.click('.nav-link[data-view="history"]');
 
     // Wait for history view to be active
     await expect(page.locator('#historyView')).toHaveClass(/active/);
@@ -48,7 +65,14 @@ test.describe('WebGit - History View', () => {
 
   test('should display commit list', async ({ page }) => {
     await page.goto('/');
-    await page.click('.bottom-nav-item[data-view="history"], .nav-link[data-view="history"]:visible');
+
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
+    await page.click('.nav-link[data-view="history"]');
 
     // Wait for loading to complete
     await page.waitForFunction(() => {
@@ -66,8 +90,14 @@ test.describe('WebGit - Branches View', () => {
   test('should navigate to branches view', async ({ page }) => {
     await page.goto('/');
 
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
     // Click on branches nav link
-    await page.click('.bottom-nav-item[data-view="branches"], .nav-link[data-view="branches"]:visible');
+    await page.click('.nav-link[data-view="branches"]');
 
     // Wait for branches view to be active
     await expect(page.locator('#branchesView')).toHaveClass(/active/);
@@ -81,7 +111,14 @@ test.describe('WebGit - Branches View', () => {
 
   test('should display current branch', async ({ page }) => {
     await page.goto('/');
-    await page.click('.bottom-nav-item[data-view="branches"], .nav-link[data-view="branches"]:visible');
+
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
+    await page.click('.nav-link[data-view="branches"]');
 
     // Wait for loading to complete
     await page.waitForFunction(() => {
@@ -96,7 +133,14 @@ test.describe('WebGit - Branches View', () => {
 
   test('should open new branch modal', async ({ page }) => {
     await page.goto('/');
-    await page.click('.bottom-nav-item[data-view="branches"], .nav-link[data-view="branches"]:visible');
+
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
+    await page.click('.nav-link[data-view="branches"]');
 
     // Wait for page to load
     await page.waitForTimeout(500);
@@ -116,8 +160,14 @@ test.describe('WebGit - Remotes View', () => {
   test('should navigate to remotes view', async ({ page }) => {
     await page.goto('/');
 
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
     // Click on remotes nav link
-    await page.click('.bottom-nav-item[data-view="remotes"], .nav-link[data-view="remotes"]:visible');
+    await page.click('.nav-link[data-view="remotes"]');
 
     // Wait for remotes view to be active
     await expect(page.locator('#remotesView')).toHaveClass(/active/);
@@ -131,7 +181,14 @@ test.describe('WebGit - Remotes View', () => {
 
   test('should display remote repositories', async ({ page }) => {
     await page.goto('/');
-    await page.click('.bottom-nav-item[data-view="remotes"], .nav-link[data-view="remotes"]:visible');
+
+    // Open menu on mobile if needed
+    const menuToggle = page.locator('#menuToggle');
+    if (await menuToggle.isVisible()) {
+      await menuToggle.click();
+    }
+
+    await page.click('.nav-link[data-view="remotes"]');
 
     // Wait for loading to complete
     await page.waitForFunction(() => {
@@ -181,31 +238,18 @@ test.describe('WebGit - Branch Selector', () => {
 test.describe('WebGit - Mobile Navigation', () => {
   test.use({ viewport: { width: 375, height: 667 } });
 
-  test('should show bottom navigation on mobile', async ({ page }) => {
+  test('should show menu toggle on mobile', async ({ page }) => {
     await page.goto('/');
 
-    // Check bottom nav is visible
-    const bottomNav = page.locator('.bottom-nav');
-    await expect(bottomNav).toBeVisible();
+    // Menu toggle should be visible on mobile
+    const menuToggle = page.locator('#menuToggle');
+    await expect(menuToggle).toBeVisible();
 
     // Take screenshot
     await page.screenshot({ path: 'screenshots/mobile-view.png', fullPage: true });
   });
 
-  test('should navigate using bottom nav', async ({ page }) => {
-    await page.goto('/');
-
-    // Click history in bottom nav
-    await page.click('.bottom-nav-item[data-view="history"]');
-
-    // Check history view is active
-    await expect(page.locator('#historyView')).toHaveClass(/active/);
-
-    // Take screenshot
-    await page.screenshot({ path: 'screenshots/mobile-history.png', fullPage: true });
-  });
-
-  test('should show menu toggle on mobile', async ({ page }) => {
+  test('should open nav menu on mobile', async ({ page }) => {
     await page.goto('/');
 
     // Menu toggle should be visible on mobile
@@ -221,20 +265,36 @@ test.describe('WebGit - Mobile Navigation', () => {
     // Take screenshot
     await page.screenshot({ path: 'screenshots/mobile-menu-open.png', fullPage: true });
   });
+
+  test('should navigate using menu on mobile', async ({ page }) => {
+    await page.goto('/');
+
+    // Open menu
+    await page.click('#menuToggle');
+
+    // Click history
+    await page.click('.nav-link[data-view="history"]');
+
+    // Check history view is active
+    await expect(page.locator('#historyView')).toHaveClass(/active/);
+
+    // Take screenshot
+    await page.screenshot({ path: 'screenshots/mobile-history.png', fullPage: true });
+  });
 });
 
 test.describe('WebGit - Responsive Design', () => {
-  test('desktop view should hide bottom nav', async ({ page }) => {
+  test('desktop view should show sidebar nav', async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 800 });
     await page.goto('/');
 
-    // Bottom nav should be hidden on desktop
-    const bottomNav = page.locator('.bottom-nav');
-    await expect(bottomNav).toBeHidden();
-
-    // Side nav should be visible
+    // Side nav should be visible on desktop
     const sideNav = page.locator('#mainNav');
     await expect(sideNav).toBeVisible();
+
+    // Menu toggle should be hidden on desktop
+    const menuToggle = page.locator('#menuToggle');
+    await expect(menuToggle).toBeHidden();
 
     // Take screenshot
     await page.screenshot({ path: 'screenshots/desktop-view.png', fullPage: true });

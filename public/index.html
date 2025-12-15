@@ -197,7 +197,6 @@
     /* Main Content */
     .main {
       padding: 16px;
-      padding-bottom: 80px;
     }
 
     /* Cards */
@@ -712,48 +711,6 @@
       color: var(--text-primary);
     }
 
-    /* Bottom Nav (Mobile) */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--bg-card);
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-around;
-      padding: 8px 0;
-      padding-bottom: max(8px, env(safe-area-inset-bottom));
-      z-index: 100;
-    }
-
-    .bottom-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      padding: 8px 16px;
-      color: var(--text-secondary);
-      text-decoration: none;
-      font-size: 10px;
-      min-width: var(--touch-target);
-      min-height: var(--touch-target);
-      justify-content: center;
-      border-radius: var(--radius);
-      background: none;
-      border: none;
-      cursor: pointer;
-    }
-
-    .bottom-nav-item:hover, .bottom-nav-item.active {
-      color: var(--primary);
-    }
-
-    .bottom-nav-item svg {
-      width: 24px;
-      height: 24px;
-    }
-
     .badge {
       position: absolute;
       top: -2px;
@@ -927,11 +884,6 @@
       .main {
         margin-left: 220px;
         padding: 24px;
-        padding-bottom: 24px;
-      }
-
-      .bottom-nav {
-        display: none;
       }
 
       .diff-line-num {
@@ -1072,10 +1024,13 @@
     <ul class="nav-list">
       <li class="nav-item">
         <a href="#" class="nav-link active" data-view="status">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 20h9"/>
-            <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
+          <div class="nav-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            <span class="badge" id="changesBadge" style="display: none;">0</span>
+          </div>
           Changes
         </a>
       </li>
@@ -1212,44 +1167,6 @@
       </div>
     </div>
   </main>
-
-  <!-- Bottom Navigation (Mobile) -->
-  <nav class="bottom-nav">
-    <button class="bottom-nav-item active" data-view="status">
-      <div class="nav-icon-wrapper">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 20h9"/>
-          <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
-        <span class="badge" id="changesBadge" style="display: none;">0</span>
-      </div>
-      <span>Changes</span>
-    </button>
-    <button class="bottom-nav-item" data-view="history">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      <span>History</span>
-    </button>
-    <button class="bottom-nav-item" data-view="branches">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M6 3v12"/>
-        <circle cx="6" cy="18" r="3"/>
-        <circle cx="18" cy="6" r="3"/>
-        <path d="M18 9a9 9 0 01-9 9"/>
-      </svg>
-      <span>Branches</span>
-    </button>
-    <button class="bottom-nav-item" data-view="remotes">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="2" y1="12" x2="22" y2="12"/>
-        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-      </svg>
-      <span>Remotes</span>
-    </button>
-  </nav>
 
   <!-- Branch Modal -->
   <div class="modal-overlay" id="branchModal">
@@ -1395,7 +1312,7 @@
       state.currentView = viewName;
 
       // Update nav links
-      document.querySelectorAll('.nav-link, .bottom-nav-item').forEach(link => {
+      document.querySelectorAll('.nav-link').forEach(link => {
         link.classList.toggle('active', link.dataset.view === viewName);
       });
 
@@ -2205,7 +2122,7 @@
     });
 
     // Nav links
-    document.querySelectorAll('.nav-link, .bottom-nav-item').forEach(link => {
+    document.querySelectorAll('.nav-link').forEach(link => {
       link.addEventListener('click', (e) => {
         e.preventDefault();
         if (link.dataset.view) {
