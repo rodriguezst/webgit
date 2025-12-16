@@ -45,7 +45,7 @@ A standalone, lightweight Git web viewer that can be launched from any git repos
 Install WebGit globally to use it from any directory:
 
 ```bash
-npm install -g webgit
+npm install -g @rodriguezst_/webgit
 ```
 
 ### Run Without Installing
@@ -53,7 +53,7 @@ npm install -g webgit
 You can run WebGit directly without installing using npx:
 
 ```bash
-npx webgit
+npx @rodriguezst_/webgit
 ```
 
 ## Usage
@@ -66,7 +66,7 @@ cd /path/to/your/repo
 webgit
 
 # Or run without installing:
-npx webgit
+npx @rodriguezst_/webgit
 ```
 
 Then open http://localhost:3000 in your browser.
@@ -97,7 +97,7 @@ webgit --dir /path/to/your/repo
 webgit --port 4000 --open
 
 # Using npx with options
-npx webgit --dir /path/to/repo --port 8080
+npx @rodriguezst_/webgit --dir /path/to/repo --port 8080
 ```
 
 ### Development

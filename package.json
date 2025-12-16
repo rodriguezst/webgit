@@ -1,6 +1,6 @@
 {
-  "name": "webgit",
-  "version": "1.0.0",
+  "name": "@rodriguezst_/webgit",
+  "version": "1.0.1",
   "description": "A standalone Git viewer web client - browse your git repositories from the browser",
   "main": "src/server.js",
   "type": "module",
@@ -27,7 +27,7 @@
     "repository",
     "browser"
   ],
-  "author": "ai-bot <ai-bot@rodriguezst.es>",
+  "author": "rodriguezst <git@rodriguezst.es>",
   "license": "MIT",
   "repository": {
     "type": "git",
