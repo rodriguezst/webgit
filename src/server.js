@@ -57,6 +57,15 @@ export function startServer(options = {}) {
   app.use(express.json());
   app.use(express.static(join(__dirname, '../public')));
 
+  // Health check endpoint
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+
   // CSRF token endpoint
   app.get('/api/csrf-token', (req, res) => {
     res.json({ token: csrfToken });
