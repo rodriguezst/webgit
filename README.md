@@ -17,6 +17,10 @@ A standalone, lightweight Git web viewer that can be launched from any git repos
 ### Desktop View
 ![Desktop View](screenshots/desktop-view.png)
 
+<details>
+
+<summary>More Screenshots</summary>
+
 ### Mobile View
 ![Mobile View](screenshots/mobile-view.png)
 
@@ -37,6 +41,8 @@ A standalone, lightweight Git web viewer that can be launched from any git repos
 
 ### Mobile Menu
 ![Mobile Menu](screenshots/mobile-menu-open.png)
+
+</details>
 
 ## Installation
 
